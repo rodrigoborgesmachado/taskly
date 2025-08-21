@@ -6,11 +6,11 @@ import type { TicketCard } from './types/board';
 import { loadBoardDynamic } from './services/boardService';
 import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, verifyPermission } from './services/fsWeb';
 import { saveRootHandle, loadRootHandle, clearRootHandle } from './services/handleStore';
-import {  } from './services/fsWeb';
 import Board from './components/Board';
 import CardModal from './components/CardModal';
 import './App.css';
 import NewCardModal from './components/NewCardModal';
+import NewStageModal from './components/NewStageModal';
 
 function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -19,8 +19,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
   const [activeCard, setActiveCard] = useState<TicketCard | null>(null);
-  const [newStage, setNewStage] = useState<string | null>(null); 
+  const [newStage, setNewStage] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [showStageModal, setShowStageModal] = useState(false);
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
 
@@ -99,7 +100,15 @@ function App() {
     if (!root || !newStage) return;
     await createCardInStage(root, newStage, folderTitle, description, true);
     await doLoad();
-  };    
+  };
+
+  const doCreateStage = async (stageName: string) => {
+    if (!root) return;
+    const ok = await verifyPermission(root, 'readwrite');
+    if (!ok) { setErr('Sem permissão para criar pasta.'); return; }
+    await root.getDirectoryHandle(stageName, { create: true });
+    await doLoad();
+  };
 
   return (
     <div style={{ padding: 16 }}>
@@ -117,6 +126,9 @@ function App() {
         <button onClick={() => doLoad()} disabled={!root || loading}>{loading ? 'Lendo…' : 'Recarregar'}</button>
         <button onClick={() => { clearRootHandle(); setRoot(null); setBoard(null); setActiveCard(null); }}>
           Esquecer pasta
+        </button>
+        <button onClick={() => setShowStageModal(true)} disabled={!root}>
+          Nova lista
         </button>
       </div>
 
@@ -136,7 +148,12 @@ function App() {
         stageName={newStage}
         onClose={() => setShowNewModal(false)}
         onCreate={doCreateCard}
-      />  
+      />
+      <NewStageModal
+        open={showStageModal}
+        onClose={() => setShowStageModal(false)}
+        onCreate={doCreateStage}
+      />
     </div>
   );
 }
