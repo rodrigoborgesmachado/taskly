@@ -40,11 +40,6 @@ export const StageLabels: Record<StageKey, string> = {
   closed: 'Finalizados'
 };
 
-// Helperzinho pra pegar nomes das pastas (ex.: "progress", "waitingpr", "closed")
-export function getStageFolder(config: AppConfig, key: StageKey): string {
-  return config.stages[key];
-}
-
 // Só pra saber se estamos em Electron depois (preload vai expor window.jiraFS)
 export function isElectron(): boolean {
   return typeof (window as any).jiraFS !== 'undefined';

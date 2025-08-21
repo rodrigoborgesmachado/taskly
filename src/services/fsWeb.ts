@@ -1,5 +1,4 @@
 import type { TicketCard } from '../types/board';
-import type { AppConfig, StageInfo, StageKey } from '../types/common';
 
 export const canUseFS = typeof window !== 'undefined' && !!(window as any).showDirectoryPicker;
 
@@ -18,11 +17,6 @@ export async function ensureSubdir(parent: FileSystemDirectoryHandle, name: stri
   } catch {
     return await parent.getDirectoryHandle(name, { create: true });
   }
-}
-
-async function readText(fileHandle: FileSystemFileHandle) {
-  const file = await fileHandle.getFile();
-  return await file.text();
 }
 
 export async function readTicketFromFolder(

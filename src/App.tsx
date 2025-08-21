@@ -11,7 +11,6 @@ import Board from './components/Board';
 import CardModal from './components/CardModal';
 import './App.css';
 import NewCardModal from './components/NewCardModal';
-import { copyText } from './utils/clipboard';
 
 function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -104,29 +103,20 @@ function App() {
 
   return (
     <div style={{ padding: 16 }}>
-      <h1>Jira Folder Board</h1>
+      <h1>Taskly</h1>
       {root && (
         <div style={{ fontSize: 13, opacity: .8, marginBottom: 12, display:'flex', gap:8, alignItems:'center' }}>
           <span>Pasta raiz: <strong>{(root as any).name}</strong></span>
-          <button onClick={() => copyText((root as any).name)}>Copiar</button>
-          <button onClick={async () => {
-            try {
-              const ok = await verifyPermission(root, 'read');
-              if (ok) alert('Diretório já está aberto/permitido: ' + (root as any).name);
-            } catch (e) {
-              console.error(e);
-            }
-          }}>Abrir</button>
         </div>
       )}
 
       {err && <div style={{ padding:8, border:'1px solid #a33', marginBottom:12 }}>{err}</div>}
 
       <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
-        <button onClick={chooseRoot}>{root ? 'Trocar raiz' : 'Escolher raiz'}</button>
+        <button onClick={chooseRoot}>{root ? 'Trocar' : 'Escolher'} pasta</button>
         <button onClick={() => doLoad()} disabled={!root || loading}>{loading ? 'Lendo…' : 'Recarregar'}</button>
         <button onClick={() => { clearRootHandle(); setRoot(null); setBoard(null); setActiveCard(null); }}>
-          Esquecer raiz
+          Esquecer pasta
         </button>
       </div>
 
