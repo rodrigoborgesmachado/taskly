@@ -66,3 +66,16 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.ticket-card {
+  text-align: left;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: grab;
+  transition: border-color 0.25s;
+}
+.ticket-card:hover {
+  border-color: #646cff;
+}
