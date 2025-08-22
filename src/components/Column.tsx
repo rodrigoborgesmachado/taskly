@@ -49,7 +49,7 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
           <button
             key={i}
             onClick={() => onOpen(c)}
-            draggable                
+            draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', JSON.stringify({
                 stage: c.stage,
@@ -57,7 +57,7 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
               }));
               e.dataTransfer.dropEffect = 'move';
             }}
-            style={{ textAlign: 'left', background: '#111', border: '1px solid #2a2a2a', borderRadius: 10, padding: 10, cursor: 'grab' }}
+            className="ticket-card"
           >
             <div style={{ fontWeight: 600 }}>{c.title}</div>
             <div style={{ fontSize: 12, opacity: .75, marginTop: 4 }}>
