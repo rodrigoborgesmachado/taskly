@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import type { TicketCard } from '../types/board';
 import { addAttachment, openAttachment, saveDescription, addComment } from '../services/fsWeb'; // <- add addComment
+import { toast } from '../utils/toast';
 import type { StageKey } from '../types/common';
 
 interface CardModalProps {
@@ -43,6 +44,10 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
     try {
       await saveDescription(card, text ?? '');
       onSaved();
+      toast.success('Descrição salva');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar descrição');
     } finally {
       setSaving(false);
     }
@@ -54,6 +59,10 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
     try {
       await addAttachment(card);
       onSaved();
+      toast.success('Anexo adicionado');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao adicionar anexo');
     } finally {
       setAdding(false);
     }
@@ -68,6 +77,10 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
       await addComment(card, msg);
       setNewComment('');
       onSaved(); // recarrega e puxa comments.txt atualizado
+      toast.success('Comentário adicionado');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao adicionar comentário');
     } finally {
       setAddingComment(false);
     }

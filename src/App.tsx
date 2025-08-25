@@ -6,6 +6,7 @@ import type { TicketCard } from './types/board';
 import { loadBoardDynamic } from './services/boardService';
 import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, verifyPermission } from './services/fsWeb';
 import { saveRootHandle, loadRootHandle, clearRootHandle } from './services/handleStore';
+import { Toaster, toast } from './utils/toast';
 import Board from './components/Board';
 import CardModal from './components/CardModal';
 import './App.css';
@@ -85,9 +86,10 @@ function App() {
     try {
       await moveCardToStageName(card, root, targetStage);
       await doLoad(); // recarrega a UI após mover
+      toast.success('Card movido com sucesso');
     } catch (e) {
       console.error(e);
-      // opcional: toast/alert
+      toast.error('Erro ao mover o card');
     }
   };
 
@@ -98,20 +100,33 @@ function App() {
 
   const doCreateCard = async (folderTitle: string, description: string) => {
     if (!root || !newStage) return;
-    await createCardInStage(root, newStage, folderTitle, description, true);
-    await doLoad();
+    try {
+      await createCardInStage(root, newStage, folderTitle, description, true);
+      await doLoad();
+      toast.success('Card criado com sucesso');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao criar o card');
+    }
   };
 
   const doCreateStage = async (stageName: string) => {
     if (!root) return;
     const ok = await verifyPermission(root, 'readwrite');
     if (!ok) { setErr('Sem permissão para criar pasta.'); return; }
-    await root.getDirectoryHandle(stageName, { create: true });
-    await doLoad();
+    try {
+      await root.getDirectoryHandle(stageName, { create: true });
+      await doLoad();
+      toast.success('Lista criada com sucesso');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao criar a lista');
+    }
   };
 
   return (
     <div style={{ padding: 16 }}>
+      <Toaster />
       <h1>Taskly</h1>
       {root && (
         <div style={{ fontSize: 13, opacity: .8, marginBottom: 12, display:'flex', gap:8, alignItems:'center' }}>
