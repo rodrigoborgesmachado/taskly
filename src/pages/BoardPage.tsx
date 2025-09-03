@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { loadConfig } from '../config/appConfig';
 import type { AppConfig } from '../types/common';
 import type { DynamicBoardData } from '../services/boardService';
@@ -23,6 +24,7 @@ function BoardPage() {
   const [newStage, setNewStage] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [showStageModal, setShowStageModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
 
@@ -145,6 +147,7 @@ function BoardPage() {
         <button onClick={() => setShowStageModal(true)} disabled={!root}>
           Nova lista
         </button>
+        <button onClick={() => navigate('/ajuda')}>Ajuda</button>
       </div>
 
       {!root && <div>Selecione a pasta raiz. Cada subpasta será uma coluna (ordenadas alfabeticamente).</div>}

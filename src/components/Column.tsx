@@ -38,7 +38,7 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
       style={{ border: '1px solid #2a2a2a', borderRadius: 12, padding: 10, minHeight: 120 }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ fontWeight: 700 }}>{title}</div>
+        <div style={{ display:'flex', gap:8, alignItems:'center', fontWeight: 700 }}>{title}</div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:12, opacity:.7 }}>{items.length}</span>
           <button onClick={() => onNewCard(stageKey)} title="Novo card">+ Novo</button>
