@@ -1,69 +1,46 @@
-# React + TypeScript + Vite
+# Taskly
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[Taskly](https://taskly.sunsalesystem.com.br/) é uma aplicação simples e prática inspirada em ferramentas como o Trello.  
+O objetivo é transformar a estrutura de **pastas e subpastas do seu computador** em **listas e cards de tarefas**, permitindo organizar trabalhos e projetos de forma visual.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Funcionalidades
 
-## Expanding the ESLint configuration
+- Seleção de uma pasta raiz no computador;
+- Cada subpasta vira uma **lista**;
+- Cada item dentro da lista vira um **card**;
+- Possibilidade de arrastar cards entre listas para mudar de etapa;
+- Criação de novas listas e novos cards manualmente;
+- Interface simples e direta para organizar suas tarefas.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 💡 Dica de Uso
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Como o Taskly acessa apenas a pasta local do computador, as informações **não ficam salvas em servidor**.  
+Para acessar os mesmos boards em diferentes computadores, recomenda-se utilizar serviços de nuvem, como **OneDrive** ou **Google Drive**, para manter a pasta sincronizada entre dispositivos.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ Tecnologias
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **React** para o front-end;
+- **React Router** para a navegação;
+- **HTML5 e CSS3** para layout e estilo.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## ▶️ Como Usar
+
+1. Acesse o site: [https://taskly.sunsalesystem.com.br/](https://taskly.sunsalesystem.com.br/)  
+2. Clique em **Escolher Pasta** e selecione a pasta raiz do seu board;  
+3. Navegue pelas listas e cards criados automaticamente;  
+4. Organize arrastando cards ou criando novos itens;  
+5. Use com OneDrive/Google Drive se quiser manter os dados sincronizados.
+
+---
+
+## 📌 Status do Projeto
+
+🚧 Em desenvolvimento. Novas funcionalidades podem ser adicionadas nas próximas versões.
