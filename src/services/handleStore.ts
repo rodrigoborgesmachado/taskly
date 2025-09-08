@@ -2,6 +2,7 @@
 const DB_NAME = 'jira-folder-board';
 const STORE = 'handles';
 const KEY = 'rootDir';
+const LIST_KEY = 'boards';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -21,9 +22,29 @@ export async function saveRootHandle(handle: FileSystemDirectoryHandle) {
   const db = await openDB();
   return new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(handle, KEY);
+    const store = tx.objectStore(STORE);
+    store.put(handle, KEY);
+    const req = store.get(LIST_KEY);
+    req.onsuccess = () => {
+      const arr = (req.result as FileSystemDirectoryHandle[]) || [];
+      if (!arr.some(h => (h as any).name === (handle as any).name)) {
+        arr.push(handle);
+        store.put(arr, LIST_KEY);
+      }
+    };
+    req.onerror = () => reject(req.error);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function loadBoardHandles(): Promise<FileSystemDirectoryHandle[]> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(LIST_KEY);
+    req.onsuccess = () => resolve((req.result as FileSystemDirectoryHandle[]) || []);
+    req.onerror = () => reject(req.error);
   });
 }
 
