@@ -6,13 +6,14 @@ import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
 import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, verifyPermission } from '../services/fsWeb';
-import { saveRootHandle, loadRootHandle, clearRootHandle } from '../services/handleStore';
+import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
 import CardModal from '../components/CardModal';
 import '../App.css';
 import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
+import BoardsModal from '../components/BoardsModal';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -24,6 +25,8 @@ function BoardPage() {
   const [newStage, setNewStage] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [showStageModal, setShowStageModal] = useState(false);
+  const [savedBoards, setSavedBoards] = useState<FileSystemDirectoryHandle[]>([]);
+  const [showBoardsModal, setShowBoardsModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
@@ -33,6 +36,8 @@ function BoardPage() {
     (async () => {
       setErr("");
       if (canUseFS) {
+        const boards = await loadBoardHandles().catch(() => []);
+        setSavedBoards(boards);
         const saved = await loadRootHandle().catch(() => null);
         if (saved) {
           const ok = await verifyPermission(saved, 'readwrite');
@@ -73,6 +78,8 @@ function BoardPage() {
     const ok = await verifyPermission(h, 'readwrite');
     if (!ok) { setErr('Sem permissão para acessar a pasta.'); return; }
     await saveRootHandle(h).catch(() => {});
+    const boards = await loadBoardHandles().catch(() => []);
+    setSavedBoards(boards);
     setRoot(h);
   }
 
@@ -147,6 +154,7 @@ function BoardPage() {
         <button onClick={() => setShowStageModal(true)} disabled={!root}>
           Nova lista
         </button>
+        <button onClick={() => setShowBoardsModal(true)}>Boards</button>
         <button onClick={() => navigate('/ajuda')}>Ajuda</button>
       </div>
 
@@ -171,6 +179,20 @@ function BoardPage() {
         open={showStageModal}
         onClose={() => setShowStageModal(false)}
         onCreate={doCreateStage}
+      />
+      <BoardsModal
+        open={showBoardsModal}
+        boards={savedBoards}
+        onClose={() => setShowBoardsModal(false)}
+        onSelect={async (h) => {
+          const ok = await verifyPermission(h, 'readwrite');
+          if (!ok) { setErr('Sem permissão para acessar a pasta.'); return; }
+          await saveRootHandle(h).catch(() => {});
+          const boards = await loadBoardHandles().catch(() => []);
+          setSavedBoards(boards);
+          setRoot(h);
+          setShowBoardsModal(false);
+        }}
       />
     </div>
   );
