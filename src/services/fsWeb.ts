@@ -117,6 +117,16 @@ export async function verifyPermission(handle: FileSystemDirectoryHandle, mode: 
   return r === 'granted';
 }
 
+export async function openFolder(card: TicketCard): Promise<void> {
+  const ok = await verifyPermission(card.folderHandle, 'read');
+  if (!ok) return;
+  try {
+    await (window as any).showDirectoryPicker({ startIn: card.folderHandle });
+  } catch (e) {
+    console.error('Falha ao abrir pasta', e);
+  }
+}
+
 // 2) Tenta pegar a subpasta; cria se permitido em config; senão retorna null
 export async function ensureStageDir(
   root: FileSystemDirectoryHandle,

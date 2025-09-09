@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import type { TicketCard } from '../types/board';
-import { addAttachment, openAttachment, saveDescription, addComment } from '../services/fsWeb'; // <- add addComment
+import { addAttachment, openAttachment, saveDescription, addComment, openFolder } from '../services/fsWeb'; // <- add addComment
 import { toast } from '../utils/toast';
 import type { StageKey } from '../types/common';
 
@@ -97,7 +97,10 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
                 {card.updatedAt ? `Atualizado: ${new Date(card.updatedAt).toLocaleString()}` : 'Sem data'}
               </div>
             </div>
-            <button onClick={onClose} style={{ padding: '6px 10px' }}>Fechar</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => openFolder(card)} style={{ padding: '6px 10px' }}>Abrir Pasta</button>
+              <button onClick={onClose} style={{ padding: '6px 10px' }}>Fechar</button>
+            </div>
           </header>
 
           {/* Descrição */}

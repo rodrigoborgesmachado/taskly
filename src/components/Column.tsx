@@ -1,4 +1,5 @@
 import type { TicketCard } from '../types/board';
+import { openFolder } from '../services/fsWeb';
 
 interface ColumnProps {
   stageKey: string;               
@@ -46,7 +47,7 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         {items.map((c, i) => (
-          <button
+          <div
             key={i}
             onClick={() => onOpen(c)}
             draggable
@@ -58,6 +59,7 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
               e.dataTransfer.dropEffect = 'move';
             }}
             className="ticket-card"
+            role="button"
           >
             <div style={{ fontWeight: 600 }}>{c.title}</div>
             <div style={{ fontSize: 12, opacity: .75, marginTop: 4 }}>
@@ -73,7 +75,15 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
                 {c.attachments.length} anexo(s)
               </div>
             )}
-          </button>
+            <div style={{ marginTop: 8 }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); openFolder(c); }}
+                style={{ padding: '4px 8px' }}
+              >
+                Abrir Pasta
+              </button>
+            </div>
+          </div>
         ))}
         {items.length === 0 && <div style={{ opacity: .7, fontSize: 14 }}>Vazio</div>}
       </div>
