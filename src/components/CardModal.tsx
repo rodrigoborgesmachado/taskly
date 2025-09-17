@@ -1,9 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Modal from './Modal';
 import type { TicketCard } from '../types/board';
 import { addAttachment, openAttachment, saveDescription, addComment } from '../services/fsWeb'; // <- add addComment
 import { toast } from '../utils/toast';
 import type { StageKey } from '../types/common';
+
+const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
+const TRAILING_PUNCTUATION_REGEX = /[),.;!?]+$/;
+
+function renderCommentWithLinks(comment: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+
+  for (const match of comment.matchAll(URL_REGEX)) {
+    const index = match.index ?? 0;
+    const rawUrl = match[0];
+
+    if (index > lastIndex) {
+      const textSegment = comment.slice(lastIndex, index);
+      nodes.push(<span key={`text-${key++}`}>{textSegment}</span>);
+    }
+
+    let url = rawUrl;
+    let trailing = '';
+
+    while (url && TRAILING_PUNCTUATION_REGEX.test(url[url.length - 1] ?? '')) {
+      trailing = url[url.length - 1] + trailing;
+      url = url.slice(0, -1);
+    }
+
+    if (url) {
+      nodes.push(
+        <a
+          key={`link-${key++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#4da3ff', textDecoration: 'underline' }}
+        >
+          {url}
+        </a>,
+      );
+    }
+
+    if (trailing) {
+      nodes.push(<span key={`trail-${key++}`}>{trailing}</span>);
+    }
+
+    lastIndex = index + rawUrl.length;
+  }
+
+  if (lastIndex < comment.length) {
+    nodes.push(<span key={`text-${key++}`}>{comment.slice(lastIndex)}</span>);
+  }
+
+  if (nodes.length === 0) {
+    return [<span key="text-0">{comment}</span>];
+  }
+
+  return nodes;
+}
 
 interface CardModalProps {
   open: boolean;
@@ -156,11 +213,18 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
             {card.comments && card.comments.length > 0 ? (
               <ul style={{ display: 'grid', gap: 6 }}>
                 {card.comments.map((cmt, i) => (
-                  <li key={i} style={{
-                    border: '1px solid #2a2a2a', borderRadius: 8, padding: '8px 10px',
-                    background: '#0d0d0d'
-                  }}>
-                    {cmt}
+                  <li
+                    key={i}
+                    style={{
+                      border: '1px solid #2a2a2a',
+                      borderRadius: 8,
+                      padding: '8px 10px',
+                      background: '#0d0d0d',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {renderCommentWithLinks(cmt)}
                   </li>
                 ))}
               </ul>
