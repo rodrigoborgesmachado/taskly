@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode, type SVGProps } from 'react';
 import Modal from './Modal';
 import type { TicketCard } from '../types/board';
 import { addAttachment, openAttachment, saveDescription, addComment } from '../services/fsWeb'; // <- add addComment
@@ -143,6 +143,21 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
     }
   };
 
+  const copyComment = async (comment: string) => {
+    if (!navigator?.clipboard?.writeText) {
+      toast.error('Área de transferência indisponível');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(comment);
+      toast.success('Comentário copiado');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao copiar comentário');
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       {!card ? null : (
@@ -219,12 +234,38 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
                       border: '1px solid #2a2a2a',
                       borderRadius: 8,
                       padding: '8px 10px',
-                      background: '#0d0d0d',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word'
+                      background: '#0d0d0d'
                     }}
                   >
-                    {renderCommentWithLinks(cmt)}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div
+                        style={{
+                          flex: 1,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word'
+                        }}
+                      >
+                        {renderCommentWithLinks(cmt)}
+                      </div>
+                      <button
+                        onClick={() => copyComment(cmt)}
+                        title="Copiar comentário"
+                        aria-label="Copiar comentário"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 6,
+                          borderRadius: 6,
+                          border: '1px solid #2a2a2a',
+                          background: '#111',
+                          color: '#eee',
+                          flexShrink: 0
+                        }}
+                      >
+                        <CopyIcon width={16} height={16} />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -251,5 +292,22 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
         </div>
       )}
     </Modal>
+  );
+}
+
+function CopyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
   );
 }
