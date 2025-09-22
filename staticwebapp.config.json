@@ -25,12 +25,6 @@
     "X-Content-Type-Options": "nosniff"
   },
   "routes": [
-    { "route": "/index.html", "redirect": "/", "statusCode": 301 },
-
-    /* Opcional: mata URLs erradas herdadas de build/links antigos */
-    { "route": "/src/*", "statusCode": 410 },
-
-    /* Exemplo de correção específica (troque conforme o site) */
-    { "route": "/src/contatos.html", "redirect": "/contato", "statusCode": 301 }
+    { "route": "/index.html", "redirect": "/", "statusCode": 301 }
   ]
 }
