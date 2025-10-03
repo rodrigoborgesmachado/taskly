@@ -150,6 +150,9 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
+        minWidth: '16rem',
+        flex: '1 0 16rem',
+        maxHeight: '70vh',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
@@ -159,7 +162,15 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
           <button onClick={() => onNewCard(stageKey)} title="Novo card">+ Novo</button>
         </div>
       </div>
-      <div style={{ display: 'grid', gap: 8 }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: 8,
+          flex: 1,
+          overflowY: 'auto',
+          paddingRight: 4,
+        }}
+      >
         {items.map((c, i) => (
           <button
             key={i}
