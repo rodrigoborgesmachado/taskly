@@ -1,8 +1,8 @@
 #root {
-  width: 100%;
-  max-width: 1200px;
+  width: 90vw;
   margin: 0 auto;
-  padding: 32px 24px 48px;
+  padding: 2rem;
+  text-align: center;
 }
 
 .app-container {

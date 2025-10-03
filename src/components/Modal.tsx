@@ -21,7 +21,7 @@ export default function Modal({ open, onClose, children }: ModalProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'var(--color-overlay)',
+        background: 'rgba(0, 0, 0, 0.55)',
         backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',

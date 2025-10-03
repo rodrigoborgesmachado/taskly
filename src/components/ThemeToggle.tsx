@@ -16,7 +16,7 @@ export default function ThemeToggle() {
         {isDark ? '🌙' : '🌞'}
       </span>
       <span className="theme-toggle__label">
-        Tema {isDark ? 'escuro' : 'claro'}
+        {isDark ? 'Dark' : 'Light'}
       </span>
     </button>
   );
