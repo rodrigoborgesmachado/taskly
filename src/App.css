@@ -1,7 +1,7 @@
 #root {
-  width: 90vw;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 95vw;
+  margin: auto;
+  margin-top: 2rem;
   text-align: center;
 }
 
@@ -14,6 +14,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  justify-self: center;
 }
 
 .board-page__header {

@@ -12,7 +12,17 @@ interface BoardProps {
 
 export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends }: BoardProps) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data.stages.length}, 1fr)`, gap: 12 }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: 12,
+        overflowX: 'auto',
+        paddingBottom: 8,
+        width: '100%',
+        maxWidth: '100%',
+      }}
+    >
       {data.stages.map(s => (
         <Column
           key={s.key}
