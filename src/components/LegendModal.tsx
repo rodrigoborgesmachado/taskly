@@ -12,7 +12,7 @@ interface LegendModalProps {
   onSaved: (legends: Legend[]) => void;
 }
 
-const DEFAULT_COLOR = '#4DA3FF';
+const DEFAULT_COLOR = '#2CDEBF';
 
 function colorInputValue(color: string): string {
   return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : DEFAULT_COLOR;
@@ -132,7 +132,7 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
             ) : (
               items.map((item, index) => (
                 <div
-                  key={`${item.name}-${index}`}
+                  key={`${index}`}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) auto',
