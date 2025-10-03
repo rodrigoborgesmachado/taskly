@@ -166,9 +166,8 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
         style={{
           display: 'grid',
           gap: 8,
-          flex: 1,
           overflowY: 'auto',
-          paddingRight: 4,
+          padding: '4px'
         }}
       >
         {items.map((c, i) => (
@@ -186,9 +185,9 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
             }}
             className="ticket-card"
           >
-            <div style={{ fontWeight: 600 }}>{c.title}</div>
+            <div style={{ fontWeight: 600 }}>{c.title.slice(0, 80)}</div>
             <div style={{ fontSize: 12, opacity: .75, marginTop: 4 }}>
-              {(c.description || '').split(/\r?\n/)[0] || 'Sem descrição'}
+              {((c.description || '').split(/\r?\n/)[0].slice(0, 150)) || 'Sem descrição'}
             </div>
             {c.updatedAt && (
               <div style={{ fontSize: 11, opacity: .6, marginTop: 4 }}>
