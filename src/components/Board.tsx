@@ -18,6 +18,7 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard }: Board
           stageKey={s.key}
           title={s.label}
           items={data.itemsByStage[s.key] || []}
+          legends={data.legends}
           onOpen={onOpenCard}
           onDropCard={onDropCard}
           onNewCard={onNewCard}

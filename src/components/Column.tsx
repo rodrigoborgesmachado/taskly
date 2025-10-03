@@ -1,15 +1,18 @@
 import type { TicketCard } from '../types/board';
+import type { Legend } from '../types/common';
+import LegendTag from './LegendTag';
 
 interface ColumnProps {
-  stageKey: string;               
+  stageKey: string;
   title: string;
   items: TicketCard[];
+  legends: Legend[];
   onOpen: (card: TicketCard) => void;
-  onDropCard: (targetStage: string, payload: { stage: string; name: string }) => void; 
+  onDropCard: (targetStage: string, payload: { stage: string; name: string }) => void;
   onNewCard: (stageKey: string) => void;
 }
 
-export default function Column({ stageKey, title, items, onOpen, onDropCard, onNewCard }: ColumnProps) {
+export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard }: ColumnProps) {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault(); 
   };
@@ -71,6 +74,16 @@ export default function Column({ stageKey, title, items, onOpen, onDropCard, onN
             {c.attachments.length > 0 && (
               <div style={{ fontSize: 11, opacity: .65, marginTop: 6 }}>
                 {c.attachments.length} anexo(s)
+              </div>
+            )}
+            {!!c.legends?.length && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {c.legends
+                  .map(name => legends.find(l => l.name === name))
+                  .filter((legend): legend is Legend => !!legend)
+                  .map(legend => (
+                    <LegendTag key={legend.name} legend={legend} />
+                  ))}
               </div>
             )}
           </button>

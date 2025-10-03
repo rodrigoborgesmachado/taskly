@@ -1,8 +1,13 @@
 export type StageKey = string; 
 
 export interface StageInfo {
-  key: StageKey;   
-  label: string;   
+  key: StageKey;
+  label: string;
+}
+
+export interface Legend {
+  name: string;
+  color: string;
 }
 
 export interface Stages {

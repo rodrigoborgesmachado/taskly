@@ -1,5 +1,7 @@
 import type { TicketCard } from '../types/board';
 
+const CARD_LEGENDS_FILE = 'legenda.txt';
+
 export const canUseFS = typeof window !== 'undefined' && !!(window as any).showDirectoryPicker;
 
 export async function pickRootDir(): Promise<FileSystemDirectoryHandle | null> {
@@ -27,6 +29,7 @@ export async function readTicketFromFolder(
   const attachments: TicketCard['attachments'] = [];
   let updatedAt = 0;
   let comments: string[] = []; // <- novo
+  let legends: string[] = [];
 
   // info.txt
   try {
@@ -54,10 +57,26 @@ export async function readTicketFromFolder(
     console.warn('Erro lendo comments.txt em', (folderHandle as any).name, e);
   }
 
+  // legenda.txt (cada linha = nome da legenda)
+  try {
+    const lh = await folderHandle.getFileHandle(CARD_LEGENDS_FILE).catch(() => null);
+    if (lh) {
+      const f = await lh.getFile();
+      const raw = await f.text();
+      legends = raw
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      updatedAt = Math.max(updatedAt, f.lastModified);
+    }
+  } catch (e) {
+    console.warn('Erro lendo legenda.txt em', (folderHandle as any).name, e);
+  }
+
   // anexos
   try {
     for await (const [name, h] of (folderHandle as any).entries()) {
-      if (name === 'info.txt' || name === 'comments.txt') continue;
+      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE) continue;
       if (h.kind === 'file') {
         try {
           const f = await (h as FileSystemFileHandle).getFile();
@@ -82,6 +101,7 @@ export async function readTicketFromFolder(
     attachments,
     updatedAt,
     comments, // <- novo
+    legends,
   } as TicketCard;
 }
 
@@ -89,6 +109,17 @@ export async function saveDescription(card: TicketCard, text: string) {
   const info = await card.folderHandle.getFileHandle('info.txt', { create: true });
   const writable = await info.createWritable();
   await writable.write(text ?? '');
+  await writable.close();
+}
+
+export async function saveCardLegends(card: TicketCard, legendNames: string[]): Promise<void> {
+  const fh = await card.folderHandle.getFileHandle(CARD_LEGENDS_FILE, { create: true });
+  const writable = await fh.createWritable();
+  const sanitized = legendNames
+    .map(name => name.trim())
+    .filter(name => name.length > 0);
+  const content = sanitized.join('\n');
+  await writable.write(content);
   await writable.close();
 }
 
@@ -292,4 +323,9 @@ export async function createCardInStage(
     await w2.write(''); // vazio
     await w2.close();
   }
+
+  const legendFile = await cardDir.getFileHandle(CARD_LEGENDS_FILE, { create: true });
+  const w3 = await legendFile.createWritable();
+  await w3.write('');
+  await w3.close();
 }
