@@ -14,6 +14,7 @@ import '../App.css';
 import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import BoardsModal from '../components/BoardsModal';
+import LegendModal from '../components/LegendModal';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -27,6 +28,7 @@ function BoardPage() {
   const [showStageModal, setShowStageModal] = useState(false);
   const [savedBoards, setSavedBoards] = useState<FileSystemDirectoryHandle[]>([]);
   const [showBoardsModal, setShowBoardsModal] = useState(false);
+  const [showLegendModal, setShowLegendModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
@@ -148,11 +150,14 @@ function BoardPage() {
       <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
         <button onClick={chooseRoot}>{root ? 'Trocar' : 'Escolher'} pasta</button>
         <button onClick={() => doLoad()} disabled={!root || loading}>{loading ? 'Lendo…' : 'Recarregar'}</button>
-        <button onClick={() => { clearRootHandle(); setRoot(null); setBoard(null); setActiveCard(null); }}>
+        <button onClick={() => { clearRootHandle(); setRoot(null); setBoard(null); setActiveCard(null); setShowLegendModal(false); }}>
           Esquecer pasta
         </button>
         <button onClick={() => setShowStageModal(true)} disabled={!root}>
           Nova lista
+        </button>
+        <button onClick={() => setShowLegendModal(true)} disabled={!root}>
+          Gerenciar Legendas
         </button>
         <button onClick={() => setShowBoardsModal(true)}>Boards</button>
         <button onClick={() => navigate('/ajuda')}>Ajuda</button>
@@ -167,6 +172,7 @@ function BoardPage() {
         card={activeCard}
         onClose={() => setActiveCard(null)}
         onSaved={() => doLoad()}
+        availableLegends={board?.legends ?? []}
       />
 
       <NewCardModal
@@ -192,6 +198,15 @@ function BoardPage() {
           setSavedBoards(boards);
           setRoot(h);
           setShowBoardsModal(false);
+        }}
+      />
+      <LegendModal
+        open={showLegendModal}
+        root={root}
+        onClose={() => setShowLegendModal(false)}
+        onSaved={(legends) => {
+          setBoard(prev => prev ? { ...prev, legends } : prev);
+          doLoad();
         }}
       />
     </div>

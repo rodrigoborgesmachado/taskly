@@ -13,6 +13,7 @@ export interface TicketCard {
   folderHandle: FileSystemDirectoryHandle;
   stage: StageKey;
   attachments: Attachment[];
-  updatedAt?: number; 
+  updatedAt?: number;
   comments?: string[];
+  legends: string[];
 }

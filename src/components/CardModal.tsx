@@ -1,9 +1,10 @@
 import { useState, useEffect, type ReactNode, type SVGProps } from 'react';
 import Modal from './Modal';
 import type { TicketCard } from '../types/board';
-import { addAttachment, openAttachment, saveDescription, addComment } from '../services/fsWeb'; // <- add addComment
+import { addAttachment, openAttachment, saveDescription, addComment, saveCardLegends } from '../services/fsWeb'; // <- add addComment
 import { toast } from '../utils/toast';
-import type { StageKey } from '../types/common';
+import type { Legend, StageKey } from '../types/common';
+import LegendTag from './LegendTag';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
 const TRAILING_PUNCTUATION_REGEX = /[),.;!?]+$/;
@@ -68,6 +69,7 @@ interface CardModalProps {
   onClose: () => void;
   onSaved: () => void;      // recarrega board/coluna
   onMove?: (target: StageKey) => void;
+  availableLegends: Legend[];
 }
 
 function humanSize(n?: number) {
@@ -77,7 +79,7 @@ function humanSize(n?: number) {
   return `${x.toFixed(x < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
-export default function CardModal({ open, card, onClose, onSaved }: CardModalProps) {
+export default function CardModal({ open, card, onClose, onSaved, availableLegends }: CardModalProps) {
   const [text, setText] = useState(card?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -86,14 +88,21 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
   const [newComment, setNewComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
 
+  const [selectedLegends, setSelectedLegends] = useState<string[]>(card?.legends ?? []);
+  const [savingLegends, setSavingLegends] = useState(false);
+
   const cardId = card ? `${card.stage}:${card.folderHandle.name}` : '';
+
+  const availableLegendNames = new Set(availableLegends.map(l => l.name));
+  const unknownLegends = selectedLegends.filter(name => !availableLegendNames.has(name));
 
   useEffect(() => {
     if (open) {
       setText(card?.description ?? '');
       setNewComment('');
+      setSelectedLegends(card?.legends ?? []);
     }
-  }, [cardId, open, card?.description]);
+  }, [cardId, open, card?.description, card?.legends]);
 
   const doSave = async () => {
     if (!card) return;
@@ -122,6 +131,35 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
       toast.error('Erro ao adicionar anexo');
     } finally {
       setAdding(false);
+    }
+  };
+
+  const toggleLegend = (name: string) => {
+    setSelectedLegends(prev => {
+      const exists = prev.includes(name);
+      if (exists) {
+        return prev.filter(item => item !== name);
+      }
+      const next = [...prev, name];
+      const order = new Map(availableLegends.map((legend, index) => [legend.name, index] as const));
+      return next.sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER));
+    });
+  };
+
+  const doSaveLegends = async () => {
+    if (!card) return;
+    setSavingLegends(true);
+    try {
+      const toSave = selectedLegends.filter(name => availableLegendNames.has(name));
+      await saveCardLegends(card, toSave);
+      setSelectedLegends(toSave);
+      onSaved();
+      toast.success('Legendas salvas');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar legendas');
+    } finally {
+      setSavingLegends(false);
     }
   };
 
@@ -187,6 +225,59 @@ export default function CardModal({ open, card, onClose, onSaved }: CardModalPro
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
               <button onClick={doSave} disabled={saving} style={{ padding: '6px 12px' }}>
                 {saving ? 'Salvando…' : 'Salvar'}
+              </button>
+            </div>
+          </section>
+
+          {/* Legendas */}
+          <section>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Legendas</div>
+            {availableLegends.length > 0 ? (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {availableLegends.map(legend => {
+                  const checked = selectedLegends.includes(legend.name);
+                  return (
+                    <label
+                      key={legend.name}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        border: '1px solid #2a2a2a',
+                        borderRadius: 8,
+                        padding: '6px 10px',
+                        background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d'
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleLegend(legend.name)}
+                        style={{ width: 16, height: 16 }}
+                      />
+                      <LegendTag legend={legend} />
+                    </label>
+                  );
+                })}
+                {unknownLegends.length > 0 && (
+                  <div style={{ fontSize: 12, opacity: .7 }}>
+                    Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ opacity: .7, fontSize: 14, marginBottom: 6 }}>
+                Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
+              </div>
+            )}
+            {availableLegends.length === 0 && unknownLegends.length > 0 && (
+              <div style={{ fontSize: 12, opacity: .7 }}>
+                Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
+              </div>
+            )}
+            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+              <button onClick={doSaveLegends} disabled={savingLegends || !card} style={{ padding: '6px 12px' }}>
+                {savingLegends ? 'Salvando…' : 'Salvar legendas'}
               </button>
             </div>
           </section>
