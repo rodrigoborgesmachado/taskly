@@ -8,10 +8,10 @@ export default function Help() {
         margin: '0 auto',
         padding: '2rem',
         lineHeight: 1.6,
-        color: '#ddd',
+        color: 'var(--color-text-primary)',
       }}
     >
-      <h1 style={{ marginBottom: '1rem', fontSize: '2rem', fontWeight: 700 }}>
+      <h1 style={{ marginBottom: '1rem', fontSize: '2rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
         Ajuda
       </h1>
 
@@ -39,14 +39,14 @@ export default function Help() {
 
       <div
         style={{
-          border: '1px solid #2a2a2a',
-          borderRadius: 8,
+          border: '1px solid var(--color-border)',
+          borderRadius: 12,
           padding: '1rem',
-          background: '#111',
+          background: 'var(--color-surface)',
           marginBottom: '1rem',
         }}
       >
-        <h2 style={{ fontSize: '1.25rem', marginBottom: '.5rem' }}>💡 Dica extra</h2>
+        <h2 style={{ fontSize: '1.25rem', marginBottom: '.5rem', color: 'var(--color-text-primary)' }}>💡 Dica extra</h2>
         <p style={{ margin: 0 }}>
           Como os dados ficam dentro das pastas locais, nada é salvo em um servidor.
           Se você usar uma pasta que esteja dentro do <strong>OneDrive</strong> (ou outro serviço de nuvem como
@@ -56,7 +56,7 @@ export default function Help() {
       </div>
 
       <p>
-        <Link to="/" style={{ color: '#2CDEBF', fontWeight: 600 }}>
+        <Link to="/" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
           ← Voltar para o board
         </Link>
       </p>

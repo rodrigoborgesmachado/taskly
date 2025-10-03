@@ -34,14 +34,13 @@ export default function NewStageModal({ open, onClose, onCreate }: Props) {
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: 'grid', gap: 12 }}>
-        <h3 style={{ margin: 0 }}>Nova lista</h3>
+        <h3 style={{ margin: 0, color: 'var(--color-text-primary)' }}>Nova lista</h3>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: .8 }}>Nome da pasta</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Nome da pasta</span>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="Nome da lista"
-            style={{ background:'#0c0c0c', color:'#eee', border:'1px solid #2a2a2a', borderRadius:8, padding:'8px 10px' }}
           />
         </label>
         <div style={{ display:'flex', gap:8, justifyContent:'flex-end', marginTop: 8 }}>

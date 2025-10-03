@@ -101,10 +101,10 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: 'grid', gap: 16 }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <div>
-            <h2 style={{ margin: 0 }}>Gerenciar Legendas</h2>
-            <p style={{ margin: 0, fontSize: 13, opacity: 0.75 }}>
+            <h2 style={{ margin: 0, color: 'var(--color-text-primary)' }}>Gerenciar Legendas</h2>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)' }}>
               Crie, edite ou remova legendas utilizadas nos cards.
             </p>
           </div>
@@ -112,7 +112,7 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
         </header>
 
         {!canEdit && (
-          <div style={{ fontSize: 14, opacity: 0.75 }}>
+          <div style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
             Selecione uma pasta raiz para gerenciar as legendas.
           </div>
         )}
@@ -120,15 +120,23 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
         {canEdit && (
           <div style={{ display: 'grid', gap: 12 }}>
             {error && (
-              <div style={{ border: '1px solid #a33', padding: '8px 10px', borderRadius: 8 }}>
+              <div
+                style={{
+                  border: '1px solid var(--color-danger)',
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  background: 'var(--color-danger-surface)',
+                  color: 'var(--color-danger-text)',
+                }}
+              >
                 {error}
               </div>
             )}
 
             {loading ? (
-              <div style={{ opacity: 0.7 }}>Carregando…</div>
+              <div style={{ color: 'var(--color-text-secondary)' }}>Carregando…</div>
             ) : items.length === 0 ? (
-              <div style={{ opacity: 0.7 }}>Nenhuma legenda cadastrada.</div>
+              <div style={{ color: 'var(--color-text-secondary)' }}>Nenhuma legenda cadastrada.</div>
             ) : (
               items.map((item, index) => (
                 <div
@@ -138,31 +146,24 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
                     gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) auto',
                     gap: 12,
                     alignItems: 'center',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: 10,
-                    padding: '10px 12px',
-                    background: '#0d0d0d',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 12,
+                    padding: '12px 14px',
+                    background: 'var(--color-surface)',
                   }}
                 >
                   <label style={{ display: 'grid', gap: 4 }}>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Nome</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Nome</span>
                     <input
                       value={item.name}
                       onChange={e => handleNameChange(index, e.target.value)}
                       placeholder="Nome da legenda"
-                      style={{
-                        background: '#0c0c0c',
-                        border: '1px solid #2a2a2a',
-                        color: '#eee',
-                        borderRadius: 8,
-                        padding: '8px 10px',
-                      }}
                     />
                   </label>
 
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <label style={{ display: 'grid', gap: 4 }}>
-                      <span style={{ fontSize: 12, opacity: 0.7 }}>Cor</span>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Cor</span>
                       <input
                         type="color"
                         value={colorInputValue(item.color)}
@@ -170,7 +171,7 @@ export default function LegendModal({ open, root, onClose, onSaved }: LegendModa
                         style={{ width: 48, height: 32, border: 'none', background: 'transparent' }}
                       />
                     </label>
-                    <span style={{ fontSize: 12, opacity: 0.65, fontFamily: 'monospace' }}>{item.color}</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>{item.color}</span>
                     <LegendTag legend={item} />
                   </div>
 

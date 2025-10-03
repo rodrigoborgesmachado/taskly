@@ -19,15 +19,27 @@ export default function Modal({ open, onClose, children }: ModalProps) {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50
+        position: 'fixed',
+        inset: 0,
+        background: 'var(--color-overlay)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50,
       }}
       onClick={onClose}
     >
       <div
         style={{
-          width: 'min(800px, 96vw)', maxHeight: '90vh', overflow: 'auto',
-          background: '#111', border: '1px solid #2a2a2a', borderRadius: 12, padding: 16
+          width: 'min(800px, 96vw)',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          background: 'var(--color-surface-elevated)',
+          border: '1px solid var(--color-border-strong)',
+          borderRadius: 16,
+          padding: 20,
+          boxShadow: '0 24px 48px rgba(15, 23, 42, 0.4)',
         }}
         onClick={e => e.stopPropagation()}
       >

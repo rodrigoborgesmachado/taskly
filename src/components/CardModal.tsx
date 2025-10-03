@@ -38,7 +38,7 @@ function renderCommentWithLinks(comment: string): ReactNode[] {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#4da3ff', textDecoration: 'underline' }}
+          style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
         >
           {url}
         </a>,
@@ -208,8 +208,8 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
         <div style={{ display: 'grid', gap: 16 }}>
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>{card.title}</div>
-              <div style={{ fontSize: 12, opacity: .65 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text-primary)' }}>{card.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                 {card.updatedAt ? `Atualizado: ${new Date(card.updatedAt).toLocaleString()}` : 'Sem data'}
               </div>
             </div>
@@ -218,14 +218,15 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
 
           {/* Descrição */}
           <section>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Descrição (info.txt)</div>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-primary)' }}>Descrição (info.txt)</div>
             <textarea
               value={text}
               onChange={e => setText(e.target.value)}
               placeholder="Escreva a descrição aqui…"
               style={{
-                width: '100%', height: 200, background: '#0c0c0c',
-                border: '1px solid #2a2a2a', color: '#eee', borderRadius: 8, padding: 10
+                width: '100%',
+                height: 200,
+                padding: 12,
               }}
             />
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -241,7 +242,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
               </button>
             </div>
             {availableLegends.length === 0 && (
-              <div style={{ opacity: .7, fontSize: 14, marginTop: 6 }}>
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginTop: 6 }}>
                 Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
               </div>
             )}
@@ -252,12 +253,12 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                 ))}
               </div>
             ) : (
-              <div style={{ opacity: .7, fontSize: 14, marginTop: 10 }}>
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginTop: 10 }}>
                 Nenhuma legenda associada a este card.
               </div>
             )}
             {unknownLegends.length > 0 && (
-              <div style={{ fontSize: 12, opacity: .7, marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-warning)', marginTop: 6 }}>
                 Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
               </div>
             )}
@@ -265,18 +266,23 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
 
           {/* Anexos */}
           <section>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Anexos</div>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-primary)' }}>Anexos</div>
             {card.attachments?.length ? (
               <ul style={{ display: 'grid', gap: 6 }}>
                 {card.attachments.map((a, i) => (
                   <li key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    border: '1px solid #2a2a2a', borderRadius: 8, padding: '6px 10px'
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 10,
+                    padding: '8px 12px',
+                    background: 'var(--color-surface)',
                   }}>
                     <span title={a.name} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
                       {a.name}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: .8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-secondary)' }}>
                       <span style={{ fontSize: 12 }}>{humanSize(a.size)}</span>
                       <button onClick={() => openAttachment(a)} style={{ padding: '4px 8px' }}>Abrir</button>
                     </div>
@@ -284,7 +290,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                 ))}
               </ul>
             ) : (
-              <div style={{ opacity: .7, fontSize: 14 }}>Sem anexos</div>
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: 14 }}>Sem anexos</div>
             )}
             <div style={{ marginTop: 8 }}>
               <button onClick={doAttach} disabled={adding} style={{ padding: '6px 12px' }}>
@@ -295,7 +301,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
 
           {/* Comentários */}
           <section>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Comentários (comments.txt)</div>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-primary)' }}>Comentários (comments.txt)</div>
 
             {card.comments && card.comments.length > 0 ? (
               <ul style={{ display: 'grid', gap: 6 }}>
@@ -303,10 +309,10 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                   <li
                     key={i}
                     style={{
-                      border: '1px solid #2a2a2a',
-                      borderRadius: 8,
-                      padding: '8px 10px',
-                      background: '#0d0d0d'
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      background: 'var(--color-surface)',
                     }}
                   >
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -314,7 +320,8 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                         style={{
                           flex: 1,
                           whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word'
+                          wordBreak: 'break-word',
+                          color: 'var(--color-text-primary)'
                         }}
                       >
                         {renderCommentWithLinks(cmt)}
@@ -329,9 +336,9 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                           justifyContent: 'center',
                           padding: 6,
                           borderRadius: 6,
-                          border: '1px solid #2a2a2a',
-                          background: '#111',
-                          color: '#eee',
+                          border: '1px solid var(--color-border)',
+                          background: 'var(--color-surface-muted)',
+                          color: 'var(--color-text-primary)',
                           flexShrink: 0
                         }}
                       >
@@ -342,7 +349,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                 ))}
               </ul>
             ) : (
-              <div style={{ opacity: .7, fontSize: 14, marginBottom: 6 }}>Sem comentários</div>
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginBottom: 6 }}>Sem comentários</div>
             )}
 
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -350,11 +357,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                 value={newComment}
                 onChange={e => setNewComment(e.target.value)}
                 placeholder="Escreva um comentário e pressione Adicionar"
-                style={{
-                  flex: 1,
-                  background: '#0c0c0c', border: '1px solid #2a2a2a', color: '#eee',
-                  borderRadius: 8, padding: '8px 10px'
-                }}
+                style={{ flex: 1 }}
               />
               <button onClick={doAddComment} disabled={addingComment || !newComment.trim()} style={{ padding: '6px 12px' }}>
                 {addingComment ? 'Adicionando…' : 'Adicionar'}
@@ -390,10 +393,10 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: 'grid', gap: 16 }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <div>
-            <h2 style={{ margin: 0 }}>Selecionar legendas</h2>
-            <p style={{ margin: 0, fontSize: 13, opacity: 0.75 }}>
+            <h2 style={{ margin: 0, color: 'var(--color-text-primary)' }}>Selecionar legendas</h2>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)' }}>
               Marque as legendas que deseja associar ao card. As alterações são salvas automaticamente.
             </p>
           </div>
@@ -411,10 +414,12 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
-                    border: '1px solid #2a2a2a',
-                    borderRadius: 8,
+                    border: checked ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                    borderRadius: 10,
                     padding: '6px 10px',
-                    background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d',
+                    background: checked
+                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      : 'var(--color-surface)',
                     opacity: updating ? 0.6 : 1,
                     pointerEvents: updating ? 'none' : undefined
                   }}
@@ -432,18 +437,18 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
             })}
           </div>
         ) : (
-          <div style={{ opacity: .7, fontSize: 14 }}>
+          <div style={{ color: 'var(--color-text-secondary)', fontSize: 14 }}>
             Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
           </div>
         )}
 
         {unknownLegends.length > 0 && (
-          <div style={{ fontSize: 12, opacity: .7 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-warning)' }}>
             Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
           </div>
         )}
         {updating && (
-          <div style={{ fontSize: 12, opacity: 0.75 }}>Salvando alterações…</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Salvando alterações…</div>
         )}
       </div>
     </Modal>

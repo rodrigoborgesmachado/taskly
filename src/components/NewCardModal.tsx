@@ -37,25 +37,24 @@ export default function NewCardModal({ open, stageName, onClose, onCreate }: Pro
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: 'grid', gap: 12 }}>
-        <h3 style={{ margin: 0 }}>Novo card {stageName ? `em “${stageName}”` : ''}</h3>
+        <h3 style={{ margin: 0, color: 'var(--color-text-primary)' }}>Novo card {stageName ? `em “${stageName}”` : ''}</h3>
 
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: .8 }}>Título da pasta (ex.: ABC-0123 - Descrição)</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Título da pasta (ex.: ABC-0123 - Descrição)</span>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="XXX-0001 - Título do ticket"
-            style={{ background:'#0c0c0c', color:'#eee', border:'1px solid #2a2a2a', borderRadius:8, padding:'8px 10px' }}
           />
         </label>
 
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: .8 }}>Descrição inicial (info.txt)</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Descrição inicial (info.txt)</span>
           <textarea
             value={desc}
             onChange={e => setDesc(e.target.value)}
             placeholder="Digite a descrição inicial..."
-            style={{ background:'#0c0c0c', color:'#eee', border:'1px solid #2a2a2a', borderRadius:8, padding:'8px 10px', height:140 }}
+            style={{ height: 140 }}
           />
         </label>
 

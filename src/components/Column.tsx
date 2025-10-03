@@ -141,12 +141,21 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
     <div
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      style={{ border: '1px solid #2a2a2a', borderRadius: 12, padding: 10, minHeight: 120 }}
+      style={{
+        border: '1px solid var(--color-border)',
+        borderRadius: 12,
+        padding: 12,
+        minHeight: 120,
+        background: 'var(--color-surface)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ display:'flex', gap:8, alignItems:'center', fontWeight: 700 }}>{title}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+        <div style={{ display:'flex', gap:8, alignItems:'center', fontWeight: 700, color: 'var(--color-text-primary)' }}>{title}</div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <span style={{ fontSize:12, opacity:.7 }}>{items.length}</span>
+          <span style={{ fontSize:12, color: 'var(--color-text-secondary)' }}>{items.length}</span>
           <button onClick={() => onNewCard(stageKey)} title="Novo card">+ Novo</button>
         </div>
       </div>
@@ -205,25 +214,25 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
               position: 'absolute',
               top: contextMenu.y,
               left: contextMenu.x,
-              background: '#121212',
-              border: '1px solid #2a2a2a',
-              borderRadius: 10,
-              padding: '12px 14px',
-              minWidth: 220,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
-              color: '#f2f2f2',
+              background: 'var(--color-surface-elevated)',
+              border: '1px solid var(--color-border-strong)',
+              borderRadius: 12,
+              padding: '14px 16px',
+              minWidth: 240,
+              boxShadow: '0 18px 38px rgba(15, 23, 42, 0.35)',
+              color: 'var(--color-text-primary)',
             }}
             onClick={event => event.stopPropagation()}
           >
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
               Legendas
             </div>
-            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>
               Clique para alternar as legendas do card "{contextMenu.card.title}".
             </div>
             <div style={{ display: 'grid', gap: 6 }}>
               {legends.length === 0 ? (
-                <div style={{ fontSize: 13, opacity: 0.75 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
                   Nenhuma legenda disponível.
                 </div>
               ) : (
@@ -240,9 +249,9 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
                         gap: 10,
                         padding: '6px 8px',
                         borderRadius: 8,
-                        border: '1px solid transparent',
-                        background: selected ? 'rgba(44, 222, 191, 0.12)' : '#0d0d0d',
-                        color: '#f2f2f2',
+                        border: selected ? '1px solid var(--color-accent)' : '1px solid transparent',
+                        background: selected ? 'color-mix(in srgb, var(--color-accent) 18%, transparent)' : 'var(--color-surface)',
+                        color: 'var(--color-text-primary)',
                         cursor: contextMenu.pending ? 'progress' : 'pointer',
                         fontSize: 13,
                         textAlign: 'left',
@@ -255,7 +264,7 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
                           height: 12,
                           borderRadius: '50%',
                           background: legend.color,
-                          border: '1px solid rgba(255,255,255,0.3)',
+                          border: '1px solid rgba(15, 23, 42, 0.3)',
                           flexShrink: 0,
                         }}
                       />
@@ -269,16 +278,16 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
               )}
             </div>
             {contextMenu.error && (
-              <div style={{ marginTop: 10, fontSize: 12, color: '#ff8585' }}>
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-danger)' }}>
                 {contextMenu.error}
               </div>
             )}
             {!!contextMenu.missing.length && (
-              <div style={{ marginTop: 10, fontSize: 12, color: '#ffb347' }}>
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-warning)' }}>
                 Legendas não encontradas: {contextMenu.missing.join(', ')}
               </div>
             )}
-            <div style={{ fontSize: 11, opacity: 0.55, marginTop: 10 }}>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 10 }}>
               Clique fora para fechar o menu.
             </div>
           </div>

@@ -15,6 +15,7 @@ import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import BoardsModal from '../components/BoardsModal';
 import LegendModal from '../components/LegendModal';
+import ThemeToggle from '../components/ThemeToggle';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -191,18 +192,21 @@ function BoardPage() {
   };
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="board-page">
       <Toaster />
-      <h1>Taskly</h1>
+      <header className="board-page__header">
+        <h1>Taskly</h1>
+        <ThemeToggle />
+      </header>
       {root && (
-        <div style={{ fontSize: 13, opacity: .8, marginBottom: 12, display:'flex', gap:8, alignItems:'center' }}>
+        <div className="board-page__root-info">
           <span>Pasta raiz: <strong>{(root as any).name}</strong></span>
         </div>
       )}
 
-      {err && <div style={{ padding:8, border:'1px solid #a33', marginBottom:12 }}>{err}</div>}
+      {err && <div className="board-page__error">{err}</div>}
 
-      <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+      <div className="board-page__actions">
         <button onClick={chooseRoot}>{root ? 'Trocar' : 'Escolher'} pasta</button>
         <button onClick={() => doLoad()} disabled={!root || loading}>{loading ? 'Lendo…' : 'Recarregar'}</button>
         <button onClick={() => { clearRootHandle(); setRoot(null); setBoard(null); setActiveCard(null); setShowLegendModal(false); }}>
