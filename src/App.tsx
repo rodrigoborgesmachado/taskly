@@ -4,7 +4,7 @@ import Help from './pages/Help';
 
 export default function App() {
   return (
-    <div>
+    <div className="app-container">
       <Routes>
         <Route path="/" element={<BoardPage />} />
         <Route path="/ajuda" element={<Help />} />
