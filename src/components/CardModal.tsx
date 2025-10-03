@@ -90,17 +90,23 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
 
   const [selectedLegends, setSelectedLegends] = useState<string[]>(card?.legends ?? []);
   const [savingLegends, setSavingLegends] = useState(false);
+  const [legendSelectorOpen, setLegendSelectorOpen] = useState(false);
 
   const cardId = card ? `${card.stage}:${card.folderHandle.name}` : '';
 
   const availableLegendNames = new Set(availableLegends.map(l => l.name));
   const unknownLegends = selectedLegends.filter(name => !availableLegendNames.has(name));
+  const legendMap = new Map(availableLegends.map(legend => [legend.name, legend] as const));
+  const selectedLegendObjects = selectedLegends
+    .map(name => legendMap.get(name))
+    .filter((legend): legend is Legend => Boolean(legend));
 
   useEffect(() => {
     if (open) {
       setText(card?.description ?? '');
       setNewComment('');
       setSelectedLegends(card?.legends ?? []);
+      setLegendSelectorOpen(false);
     }
   }, [cardId, open, card?.description, card?.legends]);
 
@@ -232,54 +238,35 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
           {/* Legendas */}
           <section>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>Legendas</div>
-            {availableLegends.length > 0 ? (
-              <div style={{ display: 'grid', gap: 8 }}>
-                {availableLegends.map(legend => {
-                  const checked = selectedLegends.includes(legend.name);
-                  return (
-                    <label
-                      key={legend.name}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        border: '1px solid #2a2a2a',
-                        borderRadius: 8,
-                        padding: '6px 10px',
-                        background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d'
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleLegend(legend.name)}
-                        style={{ width: 16, height: 16 }}
-                      />
-                      <LegendTag legend={legend} />
-                    </label>
-                  );
-                })}
-                {unknownLegends.length > 0 && (
-                  <div style={{ fontSize: 12, opacity: .7 }}>
-                    Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ opacity: .7, fontSize: 14, marginBottom: 6 }}>
-                Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
-              </div>
-            )}
-            {availableLegends.length === 0 && unknownLegends.length > 0 && (
-              <div style={{ fontSize: 12, opacity: .7 }}>
-                Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
-              </div>
-            )}
-            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button onClick={() => setLegendSelectorOpen(true)} style={{ padding: '6px 12px' }}>
+                Selecionar legendas
+              </button>
               <button onClick={doSaveLegends} disabled={savingLegends || !card} style={{ padding: '6px 12px' }}>
                 {savingLegends ? 'Salvando…' : 'Salvar legendas'}
               </button>
             </div>
+            {availableLegends.length === 0 && (
+              <div style={{ opacity: .7, fontSize: 14, marginTop: 6 }}>
+                Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
+              </div>
+            )}
+            {selectedLegendObjects.length > 0 ? (
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {selectedLegendObjects.map(legend => (
+                  <LegendTag key={legend.name} legend={legend} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ opacity: .7, fontSize: 14, marginTop: 10 }}>
+                Nenhuma legenda associada a este card.
+              </div>
+            )}
+            {unknownLegends.length > 0 && (
+              <div style={{ fontSize: 12, opacity: .7, marginTop: 6 }}>
+                Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
+              </div>
+            )}
           </section>
 
           {/* Anexos */}
@@ -382,6 +369,87 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
           </section>
         </div>
       )}
+      <LegendSelectionModal
+        open={legendSelectorOpen}
+        onClose={() => setLegendSelectorOpen(false)}
+        availableLegends={availableLegends}
+        selectedLegends={selectedLegends}
+        toggleLegend={toggleLegend}
+        unknownLegends={unknownLegends}
+      />
+    </Modal>
+  );
+}
+
+interface LegendSelectionModalProps {
+  open: boolean;
+  onClose: () => void;
+  availableLegends: Legend[];
+  selectedLegends: string[];
+  toggleLegend: (name: string) => void;
+  unknownLegends: string[];
+}
+
+function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends, toggleLegend, unknownLegends }: LegendSelectionModalProps) {
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div style={{ display: 'grid', gap: 16 }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ margin: 0 }}>Selecionar legendas</h2>
+            <p style={{ margin: 0, fontSize: 13, opacity: 0.75 }}>
+              Marque as legendas que deseja associar ao card e depois salve as alterações.
+            </p>
+          </div>
+          <button onClick={onClose}>Fechar</button>
+        </header>
+
+        {availableLegends.length > 0 ? (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {availableLegends.map(legend => {
+              const checked = selectedLegends.includes(legend.name);
+              return (
+                <label
+                  key={legend.name}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    border: '1px solid #2a2a2a',
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleLegend(legend.name)}
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <LegendTag legend={legend} />
+                </label>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ opacity: .7, fontSize: 14 }}>
+            Nenhuma legenda cadastrada. Utilize o menu "Gerenciar Legendas" para criar novas.
+          </div>
+        )}
+
+        {unknownLegends.length > 0 && (
+          <div style={{ fontSize: 12, opacity: .7 }}>
+            Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{ padding: '6px 12px' }}>
+            Concluir seleção
+          </button>
+        </div>
+      </div>
     </Modal>
   );
 }
