@@ -5,7 +5,7 @@ import type { AppConfig } from '../types/common';
 import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
-import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, verifyPermission } from '../services/fsWeb';
+import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, verifyPermission } from '../services/fsWeb';
 import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
@@ -135,6 +135,61 @@ function BoardPage() {
     }
   };
 
+  const handleUpdateCardLegends = async (card: TicketCard, legendNames: string[]) => {
+    if (!board) return;
+
+    const availableLegendNames = new Set(board.legends.map(l => l.name));
+    const order = new Map(board.legends.map((legend, index) => [legend.name, index] as const));
+
+    const sanitized = legendNames
+      .filter(name => availableLegendNames.has(name))
+      .sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER));
+
+    const currentLegends = (card.legends ?? [])
+      .filter(name => availableLegendNames.has(name))
+      .sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER));
+
+    if (sanitized.length === currentLegends.length && sanitized.every((name, index) => currentLegends[index] === name)) {
+      return;
+    }
+
+    try {
+      await saveCardLegends(card, sanitized);
+
+      setBoard(prev => {
+        if (!prev) return prev;
+        const stageItems = prev.itemsByStage[card.stage] || [];
+        const index = stageItems.findIndex(item => item.folderHandle.name === card.folderHandle.name);
+        if (index === -1) return prev;
+
+        const updatedStageItems = [...stageItems];
+        updatedStageItems[index] = { ...stageItems[index], legends: sanitized };
+
+        return {
+          ...prev,
+          itemsByStage: {
+            ...prev.itemsByStage,
+            [card.stage]: updatedStageItems,
+          },
+        };
+      });
+
+      setActiveCard(prev => {
+        if (!prev) return prev;
+        if (prev.stage === card.stage && prev.folderHandle.name === card.folderHandle.name) {
+          return { ...prev, legends: sanitized };
+        }
+        return prev;
+      });
+
+      toast.success('Legendas atualizadas');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao atualizar legendas');
+      throw error;
+    }
+  };
+
   return (
     <div style={{ padding: 16 }}>
       <Toaster />
@@ -165,7 +220,15 @@ function BoardPage() {
 
       {!root && <div>Selecione a pasta raiz. Cada subpasta será uma coluna (ordenadas alfabeticamente).</div>}
 
-      {board && <Board data={board} onOpenCard={setActiveCard} onDropCard={handleDropCard} onNewCard={handleNewCard}/>}
+      {board && (
+        <Board
+          data={board}
+          onOpenCard={setActiveCard}
+          onDropCard={handleDropCard}
+          onNewCard={handleNewCard}
+          onUpdateCardLegends={handleUpdateCardLegends}
+        />
+      )}
 
       <CardModal
         open={!!activeCard}

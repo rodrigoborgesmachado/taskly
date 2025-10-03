@@ -7,9 +7,10 @@ interface BoardProps {
   onOpenCard: (card: TicketCard) => void;
   onDropCard: (targetStage: string, payload: { stage: string; name: string }) => void;
   onNewCard: (stageKey: string) => void;
+  onUpdateCardLegends: (card: TicketCard, legends: string[]) => Promise<void>;
 }
 
-export default function Board({ data, onOpenCard, onDropCard, onNewCard }: BoardProps) {
+export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends }: BoardProps) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data.stages.length}, 1fr)`, gap: 12 }}>
       {data.stages.map(s => (
@@ -22,6 +23,7 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard }: Board
           onOpen={onOpenCard}
           onDropCard={onDropCard}
           onNewCard={onNewCard}
+          onLegendsChange={onUpdateCardLegends}
         />
       ))}
     </div>
