@@ -89,7 +89,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
   const [addingComment, setAddingComment] = useState(false);
 
   const [selectedLegends, setSelectedLegends] = useState<string[]>(card?.legends ?? []);
-  const [savingLegends, setSavingLegends] = useState(false);
+  const [updatingLegends, setUpdatingLegends] = useState(false);
   const [legendSelectorOpen, setLegendSelectorOpen] = useState(false);
 
   const cardId = card ? `${card.stage}:${card.folderHandle.name}` : '';
@@ -107,6 +107,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
       setNewComment('');
       setSelectedLegends(card?.legends ?? []);
       setLegendSelectorOpen(false);
+      setUpdatingLegends(false);
     }
   }, [cardId, open, card?.description, card?.legends]);
 
@@ -140,32 +141,31 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
     }
   };
 
-  const toggleLegend = (name: string) => {
-    setSelectedLegends(prev => {
-      const exists = prev.includes(name);
-      if (exists) {
-        return prev.filter(item => item !== name);
-      }
-      const next = [...prev, name];
-      const order = new Map(availableLegends.map((legend, index) => [legend.name, index] as const));
-      return next.sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER));
-    });
-  };
+  const toggleLegend = async (name: string) => {
+    if (!card || updatingLegends) return;
 
-  const doSaveLegends = async () => {
-    if (!card) return;
-    setSavingLegends(true);
+    const previous = selectedLegends;
+    const exists = previous.includes(name);
+    const order = new Map(availableLegends.map((legend, index) => [legend.name, index] as const));
+
+    let next = exists ? previous.filter(item => item !== name) : [...previous, name];
+    next = next.sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER));
+
+    const toPersist = next.filter(item => availableLegendNames.has(item));
+
+    setSelectedLegends(next);
+    setUpdatingLegends(true);
+
     try {
-      const toSave = selectedLegends.filter(name => availableLegendNames.has(name));
-      await saveCardLegends(card, toSave);
-      setSelectedLegends(toSave);
+      await saveCardLegends(card, toPersist);
+      setSelectedLegends(toPersist);
       onSaved();
-      toast.success('Legendas salvas');
     } catch (e) {
       console.error(e);
-      toast.error('Erro ao salvar legendas');
+      toast.error('Erro ao atualizar legendas');
+      setSelectedLegends(previous);
     } finally {
-      setSavingLegends(false);
+      setUpdatingLegends(false);
     }
   };
 
@@ -232,18 +232,12 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
               <button onClick={doSave} disabled={saving} style={{ padding: '6px 12px' }}>
                 {saving ? 'Salvando…' : 'Salvar'}
               </button>
-            </div>
-          </section>
-
-          {/* Legendas */}
-          <section>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Legendas</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              <button onClick={() => setLegendSelectorOpen(true)} style={{ padding: '6px 12px' }}>
-                Selecionar legendas
-              </button>
-              <button onClick={doSaveLegends} disabled={savingLegends || !card} style={{ padding: '6px 12px' }}>
-                {savingLegends ? 'Salvando…' : 'Salvar legendas'}
+              <button
+                onClick={() => setLegendSelectorOpen(true)}
+                disabled={updatingLegends}
+                style={{ padding: '6px 12px' }}
+              >
+                {updatingLegends ? 'Atualizando…' : 'Legendas'}
               </button>
             </div>
             {availableLegends.length === 0 && (
@@ -376,6 +370,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
         selectedLegends={selectedLegends}
         toggleLegend={toggleLegend}
         unknownLegends={unknownLegends}
+        updating={updatingLegends}
       />
     </Modal>
   );
@@ -386,11 +381,12 @@ interface LegendSelectionModalProps {
   onClose: () => void;
   availableLegends: Legend[];
   selectedLegends: string[];
-  toggleLegend: (name: string) => void;
+  toggleLegend: (name: string) => Promise<void> | void;
   unknownLegends: string[];
+  updating: boolean;
 }
 
-function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends, toggleLegend, unknownLegends }: LegendSelectionModalProps) {
+function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends, toggleLegend, unknownLegends, updating }: LegendSelectionModalProps) {
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: 'grid', gap: 16 }}>
@@ -398,7 +394,7 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
           <div>
             <h2 style={{ margin: 0 }}>Selecionar legendas</h2>
             <p style={{ margin: 0, fontSize: 13, opacity: 0.75 }}>
-              Marque as legendas que deseja associar ao card e depois salve as alterações.
+              Marque as legendas que deseja associar ao card. As alterações são salvas automaticamente.
             </p>
           </div>
           <button onClick={onClose}>Fechar</button>
@@ -418,7 +414,9 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
                     border: '1px solid #2a2a2a',
                     borderRadius: 8,
                     padding: '6px 10px',
-                    background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d'
+                    background: checked ? 'rgba(44, 222, 191, 0.08)' : '#0d0d0d',
+                    opacity: updating ? 0.6 : 1,
+                    pointerEvents: updating ? 'none' : undefined
                   }}
                 >
                   <input
@@ -426,6 +424,7 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
                     checked={checked}
                     onChange={() => toggleLegend(legend.name)}
                     style={{ width: 16, height: 16 }}
+                    disabled={updating}
                   />
                   <LegendTag legend={legend} />
                 </label>
@@ -443,12 +442,9 @@ function LegendSelectionModal({ open, onClose, availableLegends, selectedLegends
             Legendas associadas sem cadastro: {unknownLegends.join(', ')} (serão removidas ao salvar).
           </div>
         )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '6px 12px' }}>
-            Concluir seleção
-          </button>
-        </div>
+        {updating && (
+          <div style={{ fontSize: 12, opacity: 0.75 }}>Salvando alterações…</div>
+        )}
       </div>
     </Modal>
   );
