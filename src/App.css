@@ -15,6 +15,7 @@
   flex-direction: column;
   gap: 16px;
   justify-self: center;
+  min-width: 80rem;
 }
 
 .board-page__header {
