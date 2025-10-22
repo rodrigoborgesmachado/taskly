@@ -29,6 +29,8 @@ export default function NewCardModal({ open, stageName, onClose, onCreate }: Pro
     try {
       await onCreate(title.trim(), desc);
       onClose();
+    } catch (error) {
+      // handled by onCreate
     } finally {
       setBusy(false);
     }
