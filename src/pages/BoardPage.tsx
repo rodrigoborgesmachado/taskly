@@ -119,6 +119,7 @@ function BoardPage() {
     } catch (e) {
       console.error(e);
       toast.error('Erro ao criar o card');
+      throw e;
     }
   };
 
