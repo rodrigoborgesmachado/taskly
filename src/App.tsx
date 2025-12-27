@@ -14,13 +14,15 @@ export default function App() {
         </h1>
         <ThemeToggle />
       </header>
-      <Routes>
-        <Route path="/" element={<BoardPage />} />
-        <Route path="/ajuda" element={<Help />} />
-        <Route path="/privacidade" element={<Privacy />} />
-        <Route path="/contato" element={<Contact />} />
-        <Route path="/*" element={<BoardPage />} />
-      </Routes>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<BoardPage />} />
+          <Route path="/ajuda" element={<Help />} />
+          <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/contato" element={<Contact />} />
+          <Route path="/*" element={<BoardPage />} />
+        </Routes>
+      </main>
       <footer className="app-footer">
         <div className="app-footer__brand">
           <a href="https://www.sunsalesystem.com.br/" target="_blank" rel="noreferrer">
