@@ -23,14 +23,13 @@ export default function Help() {
 
       <ul style={{ marginBottom: '1rem', paddingLeft: '1.25rem' }}>
         <li>
-          Clique em <strong>Escolher pasta</strong> para selecionar a pasta raiz do board.
+          Use o botao <strong>+</strong> na barra de abas para selecionar a pasta raiz do board.
         </li>
         <li>
           Arraste os cards entre as listas para mover tarefas de uma etapa para outra.
         </li>
         <li>
-          Use <strong>Nova lista</strong> ou <strong>Novo card</strong> para criar novos itens
-          rapidamente.
+          Use <strong>Nova lista</strong> ou <strong>Novo card</strong> para criar novos itens rapidamente.
         </li>
         <li>
           Edite a descrição, adicione anexos ou insira comentários diretamente em cada card.

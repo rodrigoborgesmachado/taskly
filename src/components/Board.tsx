@@ -13,6 +13,7 @@ interface BoardProps {
 export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends }: BoardProps) {
   return (
     <div
+      className="board-surface"
       style={{
         display: 'flex',
         alignItems: 'stretch',

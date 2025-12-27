@@ -142,11 +142,11 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       style={{
-        border: '1px solid var(--color-border)',
+        border: '1px solid var(--color-list-border)',
         borderRadius: 12,
         padding: 12,
         minHeight: 120,
-        background: 'var(--color-surface)',
+        background: 'var(--color-list-bg)',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,

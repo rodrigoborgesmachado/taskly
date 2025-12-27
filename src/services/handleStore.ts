@@ -67,3 +67,20 @@ export async function clearRootHandle() {
     tx.onerror = () => reject(tx.error);
   });
 }
+
+export async function removeBoardHandle(name: string) {
+  const db = await openDB();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    const req = store.get(LIST_KEY);
+    req.onsuccess = () => {
+      const arr = (req.result as FileSystemDirectoryHandle[]) || [];
+      const next = arr.filter(h => (h as any).name !== name);
+      store.put(next, LIST_KEY);
+    };
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
