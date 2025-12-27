@@ -14,7 +14,6 @@ import '../App.css';
 import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import LegendModal from '../components/LegendModal';
-import ThemeToggle from '../components/ThemeToggle';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -210,10 +209,6 @@ function BoardPage() {
         </div>
       )}
       <Toaster />
-      <header className="board-page__header">
-        <h1>Taskly</h1>
-        <ThemeToggle />
-      </header>
       {root && (
         <div className="board-page__root-info">
           <span>Pasta raiz: <strong>{(root as any).name}</strong></span>

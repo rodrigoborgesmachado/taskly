@@ -8,6 +8,68 @@
 .app-container {
   min-height: 100vh;
   color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 95vw;
+  width: 100%;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 2.4rem;
+  color: var(--color-text-primary);
+}
+
+.app-footer {
+  margin: 24px auto 16px;
+  padding: 12px 16px;
+  max-width: 95vw;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-footer a {
+  color: var(--color-text-secondary);
+}
+
+.app-footer a:hover {
+  color: var(--color-accent);
+}
+
+.app-footer__brand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-footer__brand a {
+  font-weight: 700;
+}
+
+.app-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
 }
 
 .board-page {
@@ -30,6 +92,77 @@
   margin: 0;
   font-size: 2.4rem;
   color: var(--color-text-primary);
+}
+
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.page-title {
+  margin: 0 0 1rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.page-section-title {
+  font-size: 1.25rem;
+  margin: 1.2rem 0 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.page-paragraph {
+  margin: 0 0 1rem;
+}
+
+.page-paragraph--tight {
+  margin-bottom: 0;
+}
+
+.page-paragraph--justified {
+  text-align: justify;
+}
+
+.page-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.page-list--tight {
+  margin: 0;
+}
+
+.page-card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--color-surface);
+  margin-bottom: 1rem;
+}
+
+.page-link {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.page-link:hover {
+  text-decoration: underline;
+}
+
+.app-brand-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-brand-link:hover {
+  color: var(--color-accent);
+  text-decoration: none;
 }
 
 .board-page__root-info {
@@ -197,6 +330,13 @@
 .board-page__empty-message {
   font-size: 0.95rem;
   color: var(--color-text-secondary);
+}
+
+.privacy-info{
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: left;
 }
 
 @media (max-width: 600px) {
