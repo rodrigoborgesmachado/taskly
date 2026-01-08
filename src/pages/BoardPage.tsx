@@ -14,6 +14,7 @@ import '../App.css';
 import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import LegendModal from '../components/LegendModal';
+import BoardReportModal from '../components/BoardReportModal';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -27,6 +28,7 @@ function BoardPage() {
   const [showStageModal, setShowStageModal] = useState(false);
   const [savedBoards, setSavedBoards] = useState<FileSystemDirectoryHandle[]>([]);
   const [showLegendModal, setShowLegendModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
@@ -279,6 +281,9 @@ function BoardPage() {
           <button onClick={() => setShowLegendModal(true)} disabled={!root}>
             Gerenciar Legendas
           </button>
+          <button onClick={() => setShowReportModal(true)} disabled={!root || !board}>
+            Relatorio
+          </button>
           <button onClick={() => navigate('/ajuda')}>Ajuda</button>
         </div>
 
@@ -322,6 +327,11 @@ function BoardPage() {
           setBoard(prev => prev ? { ...prev, legends } : prev);
           doLoad();
         }}
+      />
+      <BoardReportModal
+        open={showReportModal}
+        board={board}
+        onClose={() => setShowReportModal(false)}
       />
     </div>
   );
