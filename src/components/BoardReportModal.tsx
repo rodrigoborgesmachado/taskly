@@ -151,7 +151,6 @@ function ActivityBarChart({ data }: { data: ActivityPoint[] }) {
   const padding = 24;
   const bottomPadding = 36;
   const max = Math.max(1, ...data.map(item => item.count));
-  const labelEvery = Math.max(1, Math.ceil(data.length / 10));
 
   const usableHeight = height - padding - bottomPadding;
   const barGap = 3;
