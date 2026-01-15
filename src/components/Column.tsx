@@ -152,7 +152,7 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
         gap: 8,
         minWidth: '16rem',
         flex: '1 0 16rem',
-        maxHeight: '70vh',
+        maxHeight: '60vh',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>

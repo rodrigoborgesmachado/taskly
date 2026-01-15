@@ -1,7 +1,7 @@
 #root {
   max-width: 95vw;
+  max-height: 100vw;
   margin: auto;
-  margin-top: 2rem;
   text-align: center;
 }
 
@@ -26,8 +26,8 @@
   gap: 16px;
   max-width: 95vw;
   width: 100%;
-  margin: 2rem auto 0;
-  padding: 0 2rem;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
   box-sizing: border-box;
 }
 
@@ -83,7 +83,6 @@
   flex-direction: column;
   gap: 16px;
   justify-self: center;
-  min-width: 80rem;
 }
 
 .board-page__header {
