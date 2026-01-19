@@ -38,7 +38,7 @@
 }
 
 .app-footer {
-  margin: 24px auto 16px;
+  margin: 12px auto 12px;
   padding: 12px 16px;
   max-width: 95vw;
   width: 100%;
@@ -256,7 +256,6 @@
 .board-surface {
   background: var(--color-board-bg);
   border: 1px solid var(--color-board-border);
-  margin-bottom: 16px;
   border-top: none;
   border-radius: 0 0 12px 12px;
   padding: 12px;
