@@ -13,6 +13,8 @@ interface ColumnProps {
   onDropCard: (targetStage: string, payload: { stage: string; name: string }) => void;
   onNewCard: (stageKey: string) => void;
   onLegendsChange: (card: TicketCard, legendNames: string[]) => Promise<void>;
+  onArchiveCard: (card: TicketCard) => Promise<void>;
+  onRestoreCard: (card: TicketCard) => Promise<void>;
 }
 
 interface ContextMenuState {
@@ -25,7 +27,7 @@ interface ContextMenuState {
   error: string | null;
 }
 
-export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange }: ColumnProps) {
+export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard }: ColumnProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -136,6 +138,18 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
       console.error(e);
       setContextMenu(prev => (prev ? { ...prev, pending: false, selected: previousSelected, error: 'Não foi possível atualizar as legendas.' } : prev));
     }
+  };
+
+  const handleArchiveAction = async () => {
+    const card = contextMenu?.card;
+    if (!card) return;
+    if (card.archived) {
+      if (!window.confirm('Restaurar este card?')) return;
+      await onRestoreCard(card);
+    } else {
+      await onArchiveCard(card);
+    }
+    closeContextMenu();
   };
 
   return (
@@ -283,6 +297,14 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
             }}
             onClick={event => event.stopPropagation()}
           >
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <button
+                onClick={handleArchiveAction}
+                style={{ padding: '6px 10px' }}
+              >
+                {contextMenu.card.archived ? 'Restaurar card' : 'Arquivar card'}
+              </button>
+            </div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
               Legendas
             </div>

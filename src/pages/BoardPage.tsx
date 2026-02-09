@@ -5,7 +5,7 @@ import type { AppConfig } from '../types/common';
 import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
-import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, verifyPermission } from '../services/fsWeb';
+import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, saveCardMeta, verifyPermission } from '../services/fsWeb';
 import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles, removeBoardHandle } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
@@ -15,7 +15,9 @@ import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import LegendModal from '../components/LegendModal';
 import BoardReportModal from '../components/BoardReportModal';
+import ArchivedCardsModal from '../components/ArchivedCardsModal';
 import { getTaskSummary } from '../utils/tasks';
+import { ARCHIVED_STAGE_KEY, getArchivedStage, getVisibleStages, isArchivedStageKey } from '../utils/archive';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -30,15 +32,23 @@ function BoardPage() {
   const [savedBoards, setSavedBoards] = useState<FileSystemDirectoryHandle[]>([]);
   const [showLegendModal, setShowLegendModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showArchivedModal, setShowArchivedModal] = useState(false);
   const navigate = useNavigate();
 
   const hasAttention = useMemo(() => {
     if (!board) return false;
-    const cards = board.stages.flatMap(stage => board.itemsByStage[stage.key] || []);
+    const cards = getVisibleStages(board.stages).flatMap(stage => board.itemsByStage[stage.key] || []);
     return cards.some(card => {
       const summary = getTaskSummary(card.tasks ?? []);
       return summary.worstStatus === 'overdue' || summary.worstStatus === 'veryNear';
     });
+  }, [board]);
+
+  const archivedCards = useMemo(() => {
+    if (!board) return [];
+    const archivedStage = getArchivedStage(board.stages);
+    if (!archivedStage) return [];
+    return board.itemsByStage[archivedStage.key] ?? [];
   }, [board]);
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
@@ -212,6 +222,57 @@ function BoardPage() {
     }
   };
 
+  const ensureArchivedFolder = async () => {
+    if (!root) return;
+    await root.getDirectoryHandle(ARCHIVED_STAGE_KEY, { create: true });
+  };
+
+  const resolveOriginalStageLabel = (stageKey: string) => {
+    return board?.stages.find(s => s.key === stageKey)?.label ?? stageKey;
+  };
+
+  const handleArchiveCard = async (card: TicketCard) => {
+    if (!root) return;
+    if (isArchivedStageKey(card.stage)) return;
+    await ensureArchivedFolder();
+    const archivedAt = new Date().toISOString();
+    await saveCardMeta(card, {
+      archived: true,
+      archivedAt,
+      archivedFromListId: card.stage,
+      archivedFromListName: resolveOriginalStageLabel(card.stage),
+    });
+    await moveCardToStageName(card, root, ARCHIVED_STAGE_KEY);
+    await doLoad();
+    toast.success('Card arquivado');
+  };
+
+  const handleRestoreCard = async (card: TicketCard) => {
+    if (!root || !board) return;
+    const visibleStages = getVisibleStages(board.stages);
+    const originalStage = card.archivedFromListId
+      ? board.stages.find(stage => stage.key === card.archivedFromListId)
+      : null;
+    const targetStage = originalStage ?? visibleStages[0];
+    if (!targetStage) {
+      toast.error('Nenhuma lista disponivel para restaurar');
+      return;
+    }
+    await saveCardMeta(card, {
+      archived: false,
+      archivedAt: null,
+      archivedFromListId: targetStage.key,
+      archivedFromListName: targetStage.label,
+    });
+    await moveCardToStageName(card, root, targetStage.key);
+    await doLoad();
+    if (!originalStage) {
+      toast.error(`Lista original nao existe mais. Card movido para ${targetStage.label}.`);
+    } else {
+      toast.success('Card restaurado');
+    }
+  };
+
   return (
     <div className="board-page">
       {loading && (
@@ -291,6 +352,17 @@ function BoardPage() {
           <button onClick={() => setShowLegendModal(true)} disabled={!root}>
             Gerenciar Legendas
           </button>
+          <button
+            onClick={async () => {
+              if (!root) return;
+              await ensureArchivedFolder();
+              await doLoad();
+              setShowArchivedModal(true);
+            }}
+            disabled={!root || !board}
+          >
+            Cards arquivados
+          </button>
           <button onClick={() => setShowReportModal(true)} disabled={!root || !board}>
             Relatorio
           </button>
@@ -304,6 +376,8 @@ function BoardPage() {
             onDropCard={handleDropCard}
             onNewCard={handleNewCard}
             onUpdateCardLegends={handleUpdateCardLegends}
+            onArchiveCard={handleArchiveCard}
+            onRestoreCard={handleRestoreCard}
           />
         )}
       </div>
@@ -316,6 +390,8 @@ function BoardPage() {
         onClose={() => setActiveCard(null)}
         onSaved={() => doLoad()}
         availableLegends={board?.legends ?? []}
+        onArchiveCard={handleArchiveCard}
+        onRestoreCard={handleRestoreCard}
       />
 
       <NewCardModal
@@ -342,6 +418,14 @@ function BoardPage() {
         open={showReportModal}
         board={board}
         onClose={() => setShowReportModal(false)}
+      />
+      <ArchivedCardsModal
+        open={showArchivedModal}
+        onClose={() => setShowArchivedModal(false)}
+        cards={archivedCards}
+        stages={board?.stages ?? []}
+        legends={board?.legends ?? []}
+        onRestore={handleRestoreCard}
       />
     </div>
   );

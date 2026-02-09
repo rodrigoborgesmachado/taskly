@@ -26,4 +26,8 @@ export interface TicketCard {
   comments?: string[];
   legends: string[];
   tasks?: TaskItem[];
+  archived?: boolean;
+  archivedAt?: string | null;
+  archivedFromListId?: string | null;
+  archivedFromListName?: string | null;
 }

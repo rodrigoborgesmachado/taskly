@@ -1,6 +1,7 @@
 import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import Column from './Column';
+import { getVisibleStages } from '../utils/archive';
 
 interface BoardProps {
   data: DynamicBoardData;
@@ -8,9 +9,12 @@ interface BoardProps {
   onDropCard: (targetStage: string, payload: { stage: string; name: string }) => void;
   onNewCard: (stageKey: string) => void;
   onUpdateCardLegends: (card: TicketCard, legends: string[]) => Promise<void>;
+  onArchiveCard: (card: TicketCard) => Promise<void>;
+  onRestoreCard: (card: TicketCard) => Promise<void>;
 }
 
-export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends }: BoardProps) {
+export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends, onArchiveCard, onRestoreCard }: BoardProps) {
+  const visibleStages = getVisibleStages(data.stages);
   return (
     <div
       className="board-surface"
@@ -24,7 +28,7 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdat
         maxWidth: '100%',
       }}
     >
-      {data.stages.map(s => (
+      {visibleStages.map(s => (
         <Column
           key={s.key}
           stageKey={s.key}
@@ -35,6 +39,8 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdat
           onDropCard={onDropCard}
           onNewCard={onNewCard}
           onLegendsChange={onUpdateCardLegends}
+          onArchiveCard={onArchiveCard}
+          onRestoreCard={onRestoreCard}
         />
       ))}
     </div>

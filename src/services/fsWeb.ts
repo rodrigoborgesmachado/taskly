@@ -2,6 +2,7 @@ import type { TicketCard } from '../types/board';
 
 const CARD_LEGENDS_FILE = 'legenda.txt';
 const CARD_TASKS_FILE = 'tasks.json';
+const CARD_META_FILE = 'card.json';
 
 export const canUseFS = typeof window !== 'undefined' && !!(window as any).showDirectoryPicker;
 
@@ -32,6 +33,10 @@ export async function readTicketFromFolder(
   let comments: string[] = []; // <- novo
   let legends: string[] = [];
   let tasks: TicketCard['tasks'] = [];
+  let archived = false;
+  let archivedAt: string | null = null;
+  let archivedFromListId: string | null = null;
+  let archivedFromListName: string | null = null;
 
   // info.txt
   try {
@@ -89,10 +94,27 @@ export async function readTicketFromFolder(
     console.warn('Erro lendo tasks.json em', (folderHandle as any).name, e);
   }
 
+  // card.json (metadados)
+  try {
+    const mh = await folderHandle.getFileHandle(CARD_META_FILE).catch(() => null);
+    if (mh) {
+      const f = await mh.getFile();
+      const raw = await f.text();
+      const parsed = JSON.parse(raw || '{}') as Partial<TicketCard>;
+      archived = !!parsed.archived;
+      archivedAt = parsed.archivedAt ?? null;
+      archivedFromListId = parsed.archivedFromListId ?? null;
+      archivedFromListName = parsed.archivedFromListName ?? null;
+      updatedAt = Math.max(updatedAt, f.lastModified);
+    }
+  } catch (e) {
+    console.warn('Erro lendo card.json em', (folderHandle as any).name, e);
+  }
+
   // anexos
   try {
     for await (const [name, h] of (folderHandle as any).entries()) {
-      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE || name === CARD_TASKS_FILE) continue;
+      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE || name === CARD_TASKS_FILE || name === CARD_META_FILE) continue;
       if (h.kind === 'file') {
         try {
           const f = await (h as FileSystemFileHandle).getFile();
@@ -119,6 +141,10 @@ export async function readTicketFromFolder(
     comments, // <- novo
     legends,
     tasks,
+    archived,
+    archivedAt,
+    archivedFromListId,
+    archivedFromListName,
   } as TicketCard;
 }
 
@@ -144,6 +170,19 @@ export async function saveCardTasks(card: TicketCard, tasks: TicketCard['tasks']
   const fh = await card.folderHandle.getFileHandle(CARD_TASKS_FILE, { create: true });
   const writable = await fh.createWritable();
   await writable.write(JSON.stringify(tasks ?? [], null, 2));
+  await writable.close();
+}
+
+export async function saveCardMeta(card: TicketCard, meta: Partial<TicketCard>): Promise<void> {
+  const fh = await card.folderHandle.getFileHandle(CARD_META_FILE, { create: true });
+  const writable = await fh.createWritable();
+  const payload = {
+    archived: meta.archived ?? false,
+    archivedAt: meta.archivedAt ?? null,
+    archivedFromListId: meta.archivedFromListId ?? null,
+    archivedFromListName: meta.archivedFromListName ?? null,
+  };
+  await writable.write(JSON.stringify(payload, null, 2));
   await writable.close();
 }
 
@@ -379,4 +418,9 @@ export async function createCardInStage(
   const w4 = await taskFile.createWritable();
   await w4.write('[]');
   await w4.close();
+
+  const metaFile = await cardDir.getFileHandle(CARD_META_FILE, { create: true });
+  const w5 = await metaFile.createWritable();
+  await w5.write(JSON.stringify({ archived: false }, null, 2));
+  await w5.close();
 }

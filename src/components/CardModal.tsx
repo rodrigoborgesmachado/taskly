@@ -72,6 +72,8 @@ interface CardModalProps {
   onSaved: () => void;      // recarrega board/coluna
   onMove?: (target: StageKey) => void;
   availableLegends: Legend[];
+  onArchiveCard: (card: TicketCard) => Promise<void>;
+  onRestoreCard: (card: TicketCard) => Promise<void>;
 }
 
 function humanSize(n?: number) {
@@ -81,7 +83,7 @@ function humanSize(n?: number) {
   return `${x.toFixed(x < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
-export default function CardModal({ open, card, onClose, onSaved, availableLegends }: CardModalProps) {
+export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard }: CardModalProps) {
   const [text, setText] = useState(card?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -260,6 +262,16 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
     }
   };
 
+  const handleArchiveToggle = async () => {
+    if (!card) return;
+    if (card.archived) {
+      if (!window.confirm('Restaurar este card?')) return;
+      await onRestoreCard(card);
+    } else {
+      await onArchiveCard(card);
+    }
+  };
+
   const persistTasks = async (nextTasks: TaskItem[], successMessage?: string) => {
     if (!card) return;
     try {
@@ -313,7 +325,12 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                 {card.updatedAt ? `Atualizado: ${new Date(card.updatedAt).toLocaleString()}` : 'Sem data'}
               </div>
             </div>
-            <button onClick={onClose} style={{ padding: '6px 10px' }}>Fechar</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleArchiveToggle} style={{ padding: '6px 10px' }}>
+                {card.archived ? 'Restaurar' : 'Arquivar'}
+              </button>
+              <button onClick={onClose} style={{ padding: '6px 10px' }}>Fechar</button>
+            </div>
           </header>
 
           {/* Descrição */}
