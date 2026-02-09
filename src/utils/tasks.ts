@@ -16,7 +16,7 @@ export function getTaskStatus(task: TaskItem, now: Date = new Date()): TaskStatu
   return 'ok';
 }
 
-export function getNextDueTask(tasks: TaskItem[], now: Date = new Date()): TaskItem | null {
+export function getNextDueTask(tasks: TaskItem[]): TaskItem | null {
   const pending = tasks
     .filter(task => !task.isCompleted)
     .filter(task => !Number.isNaN(new Date(task.dueAt).getTime()))
@@ -27,7 +27,7 @@ export function getNextDueTask(tasks: TaskItem[], now: Date = new Date()): TaskI
 export function getTaskSummary(tasks: TaskItem[], now: Date = new Date()) {
   const totalCount = tasks.length;
   const completedCount = tasks.filter(task => task.isCompleted).length;
-  const nextDueTask = getNextDueTask(tasks, now);
+  const nextDueTask = getNextDueTask(tasks);
 
   const pendingStatuses = tasks
     .filter(task => !task.isCompleted)
