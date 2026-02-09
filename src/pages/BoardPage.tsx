@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { loadConfig } from '../config/appConfig';
 import type { AppConfig } from '../types/common';
@@ -15,6 +15,7 @@ import NewCardModal from '../components/NewCardModal';
 import NewStageModal from '../components/NewStageModal';
 import LegendModal from '../components/LegendModal';
 import BoardReportModal from '../components/BoardReportModal';
+import { getTaskSummary } from '../utils/tasks';
 
 function BoardPage() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -30,6 +31,15 @@ function BoardPage() {
   const [showLegendModal, setShowLegendModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const navigate = useNavigate();
+
+  const hasAttention = useMemo(() => {
+    if (!board) return false;
+    const cards = board.stages.flatMap(stage => board.itemsByStage[stage.key] || []);
+    return cards.some(card => {
+      const summary = getTaskSummary(card.tasks ?? []);
+      return summary.worstStatus === 'overdue' || summary.worstStatus === 'veryNear';
+    });
+  }, [board]);
 
   useEffect(() => { loadConfig().then(setConfig); }, []);
 
@@ -218,7 +228,7 @@ function BoardPage() {
       )}
       {err && <div className="board-page__error">{err}</div>}
 
-      <div className="board-frame">
+      <div className={`board-frame${hasAttention ? " board-frame--attention" : ""}`}>
         <div className="board-tabs" role="tablist" aria-label="Boards">
           {!root && (
             <button

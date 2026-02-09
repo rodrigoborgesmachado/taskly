@@ -1,10 +1,12 @@
-import { useState, useEffect, type ReactNode, type SVGProps } from 'react';
+import { useState, useEffect, useMemo, type ReactNode, type SVGProps } from 'react';
 import Modal from './Modal';
-import type { TicketCard } from '../types/board';
-import { addAttachment, openAttachment, saveDescription, addComment, saveCardLegends } from '../services/fsWeb'; // <- add addComment
+import type { TicketCard, TaskItem } from '../types/board';
+import { addAttachment, openAttachment, saveDescription, addComment, saveCardLegends, updateComment, saveCardTasks } from '../services/fsWeb'; // <- add addComment
 import { toast } from '../utils/toast';
 import type { Legend, StageKey } from '../types/common';
 import LegendTag from './LegendTag';
+import NewTaskModal from './NewTaskModal';
+import { createTaskId, formatDueDateTime, getTaskStatus, getTaskStatusLabel } from '../utils/tasks';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
 const TRAILING_PUNCTUATION_REGEX = /[),.;!?]+$/;
@@ -87,10 +89,15 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
   // comentários
   const [newComment, setNewComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
+  const [editingCommentIndex, setEditingCommentIndex] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+  const [savingCommentEdit, setSavingCommentEdit] = useState(false);
 
   const [selectedLegends, setSelectedLegends] = useState<string[]>(card?.legends ?? []);
   const [updatingLegends, setUpdatingLegends] = useState(false);
   const [legendSelectorOpen, setLegendSelectorOpen] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [showTaskModal, setShowTaskModal] = useState(false);
 
   const cardId = card ? `${card.stage}:${card.folderHandle.name}` : '';
 
@@ -101,13 +108,35 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
     .map(name => legendMap.get(name))
     .filter((legend): legend is Legend => Boolean(legend));
 
+  const tasks = useMemo(() => card?.tasks ?? [], [cardId, card?.tasks]);
+  const sortedTasks = useMemo(() => {
+    const list = [...tasks];
+    list.sort((a, b) => {
+      if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+      const aDue = new Date(a.dueAt).getTime();
+      const bDue = new Date(b.dueAt).getTime();
+      if (Number.isNaN(aDue) && Number.isNaN(bDue)) return 0;
+      if (Number.isNaN(aDue)) return 1;
+      if (Number.isNaN(bDue)) return -1;
+      return aDue - bDue;
+    });
+    if (taskFilter === 'pending') return list.filter(task => !task.isCompleted);
+    if (taskFilter === 'completed') return list.filter(task => task.isCompleted);
+    return list;
+  }, [tasks, taskFilter]);
+
   useEffect(() => {
     if (open) {
       setText(card?.description ?? '');
       setNewComment('');
+      setEditingCommentIndex(null);
+      setEditingCommentText('');
+      setSavingCommentEdit(false);
       setSelectedLegends(card?.legends ?? []);
       setLegendSelectorOpen(false);
       setUpdatingLegends(false);
+      setTaskFilter('all');
+      setShowTaskModal(false);
     }
   }, [cardId, open, card?.description, card?.legends]);
 
@@ -202,6 +231,77 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
     }
   };
 
+  const startEditComment = (index: number, comment: string) => {
+    setEditingCommentIndex(index);
+    setEditingCommentText(comment);
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentIndex(null);
+    setEditingCommentText('');
+  };
+
+  const doSaveEditedComment = async () => {
+    if (!card || editingCommentIndex === null) return;
+    const msg = (editingCommentText ?? '').trim();
+    if (!msg) return;
+    setSavingCommentEdit(true);
+    try {
+      await updateComment(card, editingCommentIndex, msg);
+      setEditingCommentIndex(null);
+      setEditingCommentText('');
+      onSaved();
+      toast.success('Comentario atualizado');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao atualizar comentario');
+    } finally {
+      setSavingCommentEdit(false);
+    }
+  };
+
+  const persistTasks = async (nextTasks: TaskItem[], successMessage?: string) => {
+    if (!card) return;
+    try {
+      await saveCardTasks(card, nextTasks);
+      onSaved();
+      if (successMessage) toast.success(successMessage);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar tarefas');
+      throw e;
+    }
+  };
+
+  const toggleTask = async (taskId: string, nextValue: boolean) => {
+    if (!card) return;
+    const nowIso = new Date().toISOString();
+    const nextTasks = (card.tasks ?? []).map(task => {
+      if (task.id !== taskId) return task;
+      return {
+        ...task,
+        isCompleted: nextValue,
+        completedAt: nextValue ? nowIso : null,
+      };
+    });
+    await persistTasks(nextTasks);
+  };
+
+  const createTask = async (description: string, dueAt: string) => {
+    if (!card) return;
+    const nowIso = new Date().toISOString();
+    const newTask: TaskItem = {
+      id: createTaskId(),
+      description,
+      dueAt,
+      isCompleted: false,
+      createdAt: nowIso,
+      completedAt: null,
+    };
+    const nextTasks = [...(card.tasks ?? []), newTask];
+    await persistTasks(nextTasks, 'Tarefa adicionada');
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       {!card ? null : (
@@ -264,6 +364,105 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
             )}
           </section>
 
+          {/* Tarefas */}
+          <section>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+              <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>Tarefas</div>
+              <button onClick={() => setShowTaskModal(true)} style={{ padding: '6px 12px' }}>
+                + Nova tarefa
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setTaskFilter('all')}
+                style={{ padding: '4px 10px', opacity: taskFilter === 'all' ? 1 : 0.6 }}
+              >
+                Todas
+              </button>
+              <button
+                onClick={() => setTaskFilter('pending')}
+                style={{ padding: '4px 10px', opacity: taskFilter === 'pending' ? 1 : 0.6 }}
+              >
+                Pendentes
+              </button>
+              <button
+                onClick={() => setTaskFilter('completed')}
+                style={{ padding: '4px 10px', opacity: taskFilter === 'completed' ? 1 : 0.6 }}
+              >
+                Concluidas
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                {tasks.length} tarefa(s)
+              </span>
+            </div>
+
+            {sortedTasks.length > 0 ? (
+              <ul style={{ display: 'grid', gap: 8 }}>
+                {sortedTasks.map(task => {
+                  const now = new Date();
+                  const status = getTaskStatus(task, now);
+                  const statusColor = status === 'overdue'
+                    ? 'var(--color-danger)'
+                    : status === 'veryNear' || status === 'near'
+                      ? 'var(--color-warning)'
+                      : status === 'completed'
+                        ? 'var(--color-text-secondary)'
+                        : 'var(--color-accent)';
+                  return (
+                    <li
+                      key={task.id}
+                      style={{
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 12,
+                        padding: '10px 12px',
+                        background: 'var(--color-surface)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                        <input
+                          type="checkbox"
+                          checked={task.isCompleted}
+                          onChange={e => toggleTask(task.id, e.target.checked)}
+                        />
+                        <div style={{ flex: 1, display: 'grid', gap: 4 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              textDecoration: task.isCompleted ? 'line-through' : 'none',
+                              opacity: task.isCompleted ? 0.7 : 1,
+                            }}
+                          >
+                            {task.description}
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                              {formatDueDateTime(task.dueAt)}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 600,
+                                color: statusColor,
+                                border: `1px solid ${statusColor}`,
+                                padding: '2px 8px',
+                                borderRadius: 999,
+                              }}
+                            >
+                              {getTaskStatusLabel(task, now)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: 14 }}>Sem tarefas</div>
+            )}
+          </section>
+
           {/* Anexos */}
           <section>
             <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-primary)' }}>Anexos</div>
@@ -315,35 +514,80 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
                       background: 'var(--color-surface)',
                     }}
                   >
+
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                      <div
-                        style={{
-                          flex: 1,
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          color: 'var(--color-text-primary)'
-                        }}
-                      >
-                        {renderCommentWithLinks(cmt)}
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                        {editingCommentIndex === i ? (
+                          <input
+                            value={editingCommentText}
+                            onChange={e => setEditingCommentText(e.target.value)}
+                            placeholder="Edite o comentario"
+                            style={{ width: '100%', height: 34 }}
+                            disabled={savingCommentEdit}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-word',
+                              color: 'var(--color-text-primary)'
+                            }}
+                          >
+                            {renderCommentWithLinks(cmt)}
+                          </div>
+                        )}
                       </div>
-                      <button
-                        onClick={() => copyComment(cmt)}
-                        title="Copiar comentário"
-                        aria-label="Copiar comentário"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 6,
-                          borderRadius: 6,
-                          border: '1px solid var(--color-border)',
-                          background: 'var(--color-surface-muted)',
-                          color: 'var(--color-text-primary)',
-                          flexShrink: 0
-                        }}
-                      >
-                        <CopyIcon width={16} height={16} />
-                      </button>
+                      {editingCommentIndex === i ? (
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+                          <button
+                            onClick={doSaveEditedComment}
+                            disabled={savingCommentEdit || !editingCommentText.trim()}
+                            style={{ padding: '6px 10px', height: 34 }}
+                          >
+                            {savingCommentEdit ? 'Salvando...' : 'Salvar'}
+                          </button>
+                          <button onClick={cancelEditComment} disabled={savingCommentEdit} style={{ padding: '6px 10px', height: 34 }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <button
+                            onClick={() => startEditComment(i, cmt)}
+                            title="Editar comentario"
+                            aria-label="Editar comentario"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 6,
+                              borderRadius: 6,
+                              border: '1px solid var(--color-border)',
+                              background: 'var(--color-surface-muted)',
+                              color: 'var(--color-text-primary)',
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => copyComment(cmt)}
+                            title="Copiar coment??rio"
+                            aria-label="Copiar coment??rio"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 6,
+                              borderRadius: 6,
+                              border: '1px solid var(--color-border)',
+                              background: 'var(--color-surface-muted)',
+                              color: 'var(--color-text-primary)',
+                            }}
+                          >
+                            <CopyIcon width={16} height={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -374,6 +618,11 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
         toggleLegend={toggleLegend}
         unknownLegends={unknownLegends}
         updating={updatingLegends}
+      />
+      <NewTaskModal
+        open={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        onCreate={createTask}
       />
     </Modal>
   );

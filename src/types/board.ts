@@ -7,6 +7,15 @@ export interface Attachment {
   lastModified?: number; // <- novo
 }
 
+export interface TaskItem {
+  id: string;
+  description: string;
+  dueAt: string;
+  isCompleted: boolean;
+  createdAt: string;
+  completedAt?: string | null;
+}
+
 export interface TicketCard {
   title: string;
   description: string;
@@ -16,4 +25,5 @@ export interface TicketCard {
   updatedAt?: number;
   comments?: string[];
   legends: string[];
+  tasks?: TaskItem[];
 }

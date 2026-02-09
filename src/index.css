@@ -178,6 +178,24 @@ select:focus {
   color: var(--color-text-primary);
 }
 
+.ticket-card.task-alert--overdue {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 35%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-card-bg));
+}
+
+.ticket-card.task-alert--very-near {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-card-bg));
+}
+
+.ticket-card.task-alert--near {
+  border-color: color-mix(in srgb, var(--color-warning) 70%, var(--color-card-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 6%, var(--color-card-bg));
+}
+
 .ticket-card:hover {
   border-color: var(--color-accent);
   transform: translateY(-1px);

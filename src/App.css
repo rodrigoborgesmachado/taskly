@@ -241,6 +241,23 @@
   position: relative;
 }
 
+.board-frame--attention .board-surface {
+  animation: board-attention 2.6s ease-in-out infinite;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 45%, transparent);
+}
+
+@keyframes board-attention {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-warning) 20%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-warning) 20%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-warning) 20%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-frame--attention .board-surface {
+    animation: none;
+  }
+}
+
 .board-window__actions {
   display: flex;
   flex-wrap: wrap;

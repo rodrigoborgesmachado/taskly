@@ -1,6 +1,7 @@
 import type { TicketCard } from '../types/board';
 
 const CARD_LEGENDS_FILE = 'legenda.txt';
+const CARD_TASKS_FILE = 'tasks.json';
 
 export const canUseFS = typeof window !== 'undefined' && !!(window as any).showDirectoryPicker;
 
@@ -30,6 +31,7 @@ export async function readTicketFromFolder(
   let updatedAt = 0;
   let comments: string[] = []; // <- novo
   let legends: string[] = [];
+  let tasks: TicketCard['tasks'] = [];
 
   // info.txt
   try {
@@ -73,10 +75,24 @@ export async function readTicketFromFolder(
     console.warn('Erro lendo legenda.txt em', (folderHandle as any).name, e);
   }
 
+  // tasks.json
+  try {
+    const th = await folderHandle.getFileHandle(CARD_TASKS_FILE).catch(() => null);
+    if (th) {
+      const f = await th.getFile();
+      const raw = await f.text();
+      const parsed = JSON.parse(raw || '[]');
+      if (Array.isArray(parsed)) tasks = parsed;
+      updatedAt = Math.max(updatedAt, f.lastModified);
+    }
+  } catch (e) {
+    console.warn('Erro lendo tasks.json em', (folderHandle as any).name, e);
+  }
+
   // anexos
   try {
     for await (const [name, h] of (folderHandle as any).entries()) {
-      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE) continue;
+      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE || name === CARD_TASKS_FILE) continue;
       if (h.kind === 'file') {
         try {
           const f = await (h as FileSystemFileHandle).getFile();
@@ -102,6 +118,7 @@ export async function readTicketFromFolder(
     updatedAt,
     comments, // <- novo
     legends,
+    tasks,
   } as TicketCard;
 }
 
@@ -120,6 +137,13 @@ export async function saveCardLegends(card: TicketCard, legendNames: string[]): 
     .filter(name => name.length > 0);
   const content = sanitized.join('\n');
   await writable.write(content);
+  await writable.close();
+}
+
+export async function saveCardTasks(card: TicketCard, tasks: TicketCard['tasks'] = []): Promise<void> {
+  const fh = await card.folderHandle.getFileHandle(CARD_TASKS_FILE, { create: true });
+  const writable = await fh.createWritable();
+  await writable.write(JSON.stringify(tasks ?? [], null, 2));
   await writable.close();
 }
 
@@ -285,6 +309,28 @@ export async function addComment(card: TicketCard, text: string): Promise<void> 
   await w.close();
 }
 
+export async function updateComment(card: TicketCard, index: number, text: string): Promise<void> {
+  const fname = 'comments.txt';
+  const fh = await card.folderHandle.getFileHandle(fname, { create: true });
+  let existing = '';
+  try {
+    const f = await fh.getFile();
+    existing = await f.text();
+  } catch { }
+
+  const lines = existing.split(/\r?\n/).filter(line => line.trim().length > 0);
+  if (index < 0 || index >= lines.length) {
+    throw new Error('Indice de comentario invalido');
+  }
+
+  lines[index] = (text ?? '').trim();
+  const content = lines.length ? `${lines.join('\n')}\n` : '';
+
+  const w = await fh.createWritable();
+  await w.write(content);
+  await w.close();
+}
+
 async function uniqueFolderName(stageHandle: FileSystemDirectoryHandle, base: string) {
   let name = base.trim();
   let i = 2;
@@ -328,4 +374,9 @@ export async function createCardInStage(
   const w3 = await legendFile.createWritable();
   await w3.write('');
   await w3.close();
+
+  const taskFile = await cardDir.getFileHandle(CARD_TASKS_FILE, { create: true });
+  const w4 = await taskFile.createWritable();
+  await w4.write('[]');
+  await w4.close();
 }

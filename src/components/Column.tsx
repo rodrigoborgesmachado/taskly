@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TicketCard } from '../types/board';
 import type { Legend } from '../types/common';
 import LegendTag from './LegendTag';
+import { formatDueRelative, getTaskSummary } from '../utils/tasks';
 
 interface ColumnProps {
   stageKey: string;
@@ -183,12 +184,60 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
               }));
               e.dataTransfer.dropEffect = 'move';
             }}
-            className="ticket-card"
+            className={`ticket-card${(() => {
+              const summary = getTaskSummary(c.tasks ?? []);
+              if (summary.worstStatus === 'overdue') return ' task-alert--overdue';
+              if (summary.worstStatus === 'veryNear') return ' task-alert--very-near';
+              if (summary.worstStatus === 'near') return ' task-alert--near';
+              return '';
+            })()}`}
           >
             <div style={{ fontWeight: 600 }}>{c.title.slice(0, 80)}</div>
             <div style={{ fontSize: 12, opacity: .75, marginTop: 4 }}>
               {((c.description || '').split(/\r?\n/)[0].slice(0, 150)) || 'Sem descrição'}
             </div>
+            {(() => {
+              const summary = getTaskSummary(c.tasks ?? []);
+              if (summary.totalCount === 0) return null;
+              const nextLabel = summary.nextDueAt ? formatDueRelative(summary.nextDueAt) : null;
+              const statusText = summary.worstStatus === 'overdue'
+                ? 'Atrasada'
+                : summary.worstStatus === 'veryNear'
+                  ? 'Muito proxima'
+                  : summary.worstStatus === 'near'
+                    ? 'Proxima'
+                    : '';
+              const statusColor = summary.worstStatus === 'overdue'
+                ? 'var(--color-danger)'
+                : summary.worstStatus === 'veryNear' || summary.worstStatus === 'near'
+                  ? 'var(--color-warning)'
+                  : 'var(--color-text-secondary)';
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 6, fontSize: 11 }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>
+                    Tarefas {summary.completedCount} / {summary.totalCount}
+                  </span>
+                  {nextLabel && (
+                    <span style={{ color: 'var(--color-text-secondary)' }}>
+                      Vence {nextLabel}
+                    </span>
+                  )}
+                  {statusText && (
+                    <span
+                      style={{
+                        color: statusColor,
+                        border: `1px solid ${statusColor}`,
+                        padding: '2px 6px',
+                        borderRadius: 999,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {statusText}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
             {c.updatedAt && (
               <div style={{ fontSize: 11, opacity: .6, marginTop: 4 }}>
                 Atualizado: {fmtDate(c.updatedAt)}
