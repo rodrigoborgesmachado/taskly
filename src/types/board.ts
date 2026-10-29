@@ -16,6 +16,11 @@ export interface TaskItem {
   completedAt?: string | null;
 }
 
+export interface CardRating {
+  date: string;
+  rating: number;
+}
+
 export interface TicketCard {
   title: string;
   description: string;
@@ -30,4 +35,6 @@ export interface TicketCard {
   archivedAt?: string | null;
   archivedFromListId?: string | null;
   archivedFromListName?: string | null;
+  rating?: number | null;
+  ratingHistory?: CardRating[];
 }

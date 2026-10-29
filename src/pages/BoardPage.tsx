@@ -1,11 +1,12 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { loadConfig } from '../config/appConfig';
-import type { AppConfig } from '../types/common';
+import type { AppConfig, BoardSettings } from '../types/common';
 import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
-import { canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, saveCardMeta, verifyPermission } from '../services/fsWeb';
+import { addCardRating, canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, saveCardMeta, verifyPermission } from '../services/fsWeb';
+import { saveBoardSettings } from '../services/boardSettingsService';
 import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles, removeBoardHandle } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
@@ -16,6 +17,7 @@ import NewStageModal from '../components/NewStageModal';
 import LegendModal from '../components/LegendModal';
 import BoardReportModal from '../components/BoardReportModal';
 import ArchivedCardsModal from '../components/ArchivedCardsModal';
+import BoardSettingsModal from '../components/BoardSettingsModal';
 import { getTaskSummary } from '../utils/tasks';
 import { ARCHIVED_STAGE_KEY, getArchivedStage, getVisibleStages, isArchivedStageKey } from '../utils/archive';
 
@@ -33,6 +35,7 @@ function BoardPage() {
   const [showLegendModal, setShowLegendModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showArchivedModal, setShowArchivedModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const navigate = useNavigate();
 
   const hasAttention = useMemo(() => {
@@ -273,6 +276,49 @@ function BoardPage() {
     }
   };
 
+  const handleSaveSettings = async (settings: BoardSettings) => {
+    if (!root) return;
+    try {
+      await saveBoardSettings(root, settings);
+      setBoard(prev => prev ? { ...prev, settings } : prev);
+      toast.success('Configurações salvas');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao salvar as configurações');
+      throw error;
+    }
+  };
+
+  const handleRateCard = async (card: TicketCard, rating: number) => {
+    if (card.rating === rating) return;
+    try {
+      const entry = await addCardRating(card, rating);
+      setBoard(prev => {
+        if (!prev) return prev;
+        const stageItems = prev.itemsByStage[card.stage] || [];
+        return {
+          ...prev,
+          itemsByStage: {
+            ...prev.itemsByStage,
+            [card.stage]: stageItems.map(item => item.folderHandle.name === card.folderHandle.name
+              ? { ...item, rating, ratingHistory: [...(item.ratingHistory ?? []), entry] }
+              : item),
+          },
+        };
+      });
+      setActiveCard(prev => {
+        if (!prev) return prev;
+        if (prev.stage === card.stage && prev.folderHandle.name === card.folderHandle.name) {
+          return { ...prev, rating, ratingHistory: [...(prev.ratingHistory ?? []), entry] };
+        }
+        return prev;
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao avaliar o card');
+    }
+  };
+
   return (
     <div className="board-page">
       {loading && (
@@ -366,6 +412,9 @@ function BoardPage() {
           <button onClick={() => setShowReportModal(true)} disabled={!root || !board}>
             Relatorio
           </button>
+          <button onClick={() => setShowSettingsModal(true)} disabled={!root || !board}>
+            Configurações do board
+          </button>
           <button onClick={() => navigate('/ajuda')}>Ajuda</button>
         </div>
 
@@ -378,6 +427,7 @@ function BoardPage() {
             onUpdateCardLegends={handleUpdateCardLegends}
             onArchiveCard={handleArchiveCard}
             onRestoreCard={handleRestoreCard}
+            onRateCard={handleRateCard}
           />
         )}
       </div>
@@ -392,6 +442,8 @@ function BoardPage() {
         availableLegends={board?.legends ?? []}
         onArchiveCard={handleArchiveCard}
         onRestoreCard={handleRestoreCard}
+        showRating={board?.settings.cardRating ?? false}
+        onRateCard={handleRateCard}
       />
 
       <NewCardModal
@@ -426,6 +478,12 @@ function BoardPage() {
         stages={board?.stages ?? []}
         legends={board?.legends ?? []}
         onRestore={handleRestoreCard}
+      />
+      <BoardSettingsModal
+        open={showSettingsModal}
+        settings={board?.settings ?? null}
+        onClose={() => setShowSettingsModal(false)}
+        onSave={handleSaveSettings}
       />
     </div>
   );

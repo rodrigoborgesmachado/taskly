@@ -11,9 +11,10 @@ interface BoardProps {
   onUpdateCardLegends: (card: TicketCard, legends: string[]) => Promise<void>;
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
+  onRateCard: (card: TicketCard, rating: number) => Promise<void>;
 }
 
-export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends, onArchiveCard, onRestoreCard }: BoardProps) {
+export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdateCardLegends, onArchiveCard, onRestoreCard, onRateCard }: BoardProps) {
   const visibleStages = getVisibleStages(data.stages);
   return (
     <div
@@ -41,6 +42,8 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdat
           onLegendsChange={onUpdateCardLegends}
           onArchiveCard={onArchiveCard}
           onRestoreCard={onRestoreCard}
+          showRating={data.settings.cardRating}
+          onRateCard={onRateCard}
         />
       ))}
     </div>

@@ -1,12 +1,14 @@
-import type { Legend, StageInfo, StageKey } from '../types/common';
+import type { BoardSettings, Legend, StageInfo, StageKey } from '../types/common';
 import type { TicketCard } from '../types/board';
 import { listStages, listStageTicketsByHandle } from './fsWeb';
 import { loadLegends } from './legendService';
+import { loadBoardSettings } from './boardSettingsService';
 
 export interface DynamicBoardData {
   stages: StageInfo[];
   itemsByStage: Record<StageKey, TicketCard[]>;
   legends: Legend[];
+  settings: BoardSettings;
 }
 
 export async function loadBoardDynamic(
@@ -26,6 +28,7 @@ export async function loadBoardDynamic(
   }
 
   const legends = await loadLegends(root);
+  const settings = await loadBoardSettings(root);
 
-  return { stages, itemsByStage, legends };
+  return { stages, itemsByStage, legends, settings };
 }

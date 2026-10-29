@@ -6,6 +6,8 @@ import { toast } from '../utils/toast';
 import type { Legend, StageKey } from '../types/common';
 import LegendTag from './LegendTag';
 import NewTaskModal from './NewTaskModal';
+import RatingStars from './RatingStars';
+import RatingHistoryModal from './RatingHistoryModal';
 import { createTaskId, formatDueDateTime, getTaskStatus, getTaskStatusLabel } from '../utils/tasks';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
@@ -74,6 +76,8 @@ interface CardModalProps {
   availableLegends: Legend[];
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
+  showRating: boolean;
+  onRateCard: (card: TicketCard, rating: number) => Promise<void>;
 }
 
 function humanSize(n?: number) {
@@ -83,7 +87,7 @@ function humanSize(n?: number) {
   return `${x.toFixed(x < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
-export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard }: CardModalProps) {
+export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard, showRating, onRateCard }: CardModalProps) {
   const [text, setText] = useState(card?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -100,6 +104,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
   const [legendSelectorOpen, setLegendSelectorOpen] = useState(false);
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showRatingHistory, setShowRatingHistory] = useState(false);
 
   const cardId = card ? `${card.stage}:${card.folderHandle.name}` : '';
 
@@ -139,6 +144,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
       setUpdatingLegends(false);
       setTaskFilter('all');
       setShowTaskModal(false);
+      setShowRatingHistory(false);
     }
   }, [cardId, open, card?.description, card?.legends]);
 
@@ -357,6 +363,14 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
               >
                 {updatingLegends ? 'Atualizando…' : 'Legendas'}
               </button>
+              <button onClick={() => setShowRatingHistory(true)} style={{ padding: '6px 12px' }}>
+                Avaliações
+              </button>
+              {showRating && (
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <RatingStars rating={card.rating} size={20} onRate={rating => onRateCard(card, rating)} />
+                </div>
+              )}
             </div>
             {availableLegends.length === 0 && (
               <div style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginTop: 6 }}>
@@ -640,6 +654,11 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
         open={showTaskModal}
         onClose={() => setShowTaskModal(false)}
         onCreate={createTask}
+      />
+      <RatingHistoryModal
+        open={showRatingHistory}
+        onClose={() => setShowRatingHistory(false)}
+        history={card?.ratingHistory ?? []}
       />
     </Modal>
   );

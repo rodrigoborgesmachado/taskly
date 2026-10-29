@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TicketCard } from '../types/board';
 import type { Legend } from '../types/common';
 import LegendTag from './LegendTag';
+import RatingStars from './RatingStars';
 import { formatDueRelative, getTaskSummary } from '../utils/tasks';
 
 interface ColumnProps {
@@ -15,6 +16,8 @@ interface ColumnProps {
   onLegendsChange: (card: TicketCard, legendNames: string[]) => Promise<void>;
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
+  showRating: boolean;
+  onRateCard: (card: TicketCard, rating: number) => Promise<void>;
 }
 
 interface ContextMenuState {
@@ -27,7 +30,7 @@ interface ContextMenuState {
   error: string | null;
 }
 
-export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard }: ColumnProps) {
+export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard, showRating, onRateCard }: ColumnProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -252,9 +255,14 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
                 </div>
               );
             })()}
-            {c.updatedAt && (
-              <div style={{ fontSize: 11, opacity: .6, marginTop: 4 }}>
-                Atualizado: {fmtDate(c.updatedAt)}
+            {(!!c.updatedAt || showRating) && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <div style={{ fontSize: 11, opacity: .6 }}>
+                  {!!c.updatedAt && `Atualizado: ${fmtDate(c.updatedAt)}`}
+                </div>
+                {showRating && (
+                  <RatingStars rating={c.rating} onRate={rating => onRateCard(c, rating)} />
+                )}
               </div>
             )}
             {c.attachments.length > 0 && (

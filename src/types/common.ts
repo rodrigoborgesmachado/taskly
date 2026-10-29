@@ -10,6 +10,10 @@ export interface Legend {
   color: string;
 }
 
+export interface BoardSettings {
+  cardRating: boolean;
+}
+
 export interface Stages {
   progress: string;
   waitingpr: string;

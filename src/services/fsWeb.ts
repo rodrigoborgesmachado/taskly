@@ -1,8 +1,9 @@
-import type { TicketCard } from '../types/board';
+import type { CardRating, TicketCard } from '../types/board';
 
 const CARD_LEGENDS_FILE = 'legenda.txt';
 const CARD_TASKS_FILE = 'tasks.json';
 const CARD_META_FILE = 'card.json';
+const CARD_RATING_FILE = 'avaliacao.txt';
 
 export const canUseFS = typeof window !== 'undefined' && !!(window as any).showDirectoryPicker;
 
@@ -37,6 +38,8 @@ export async function readTicketFromFolder(
   let archivedAt: string | null = null;
   let archivedFromListId: string | null = null;
   let archivedFromListName: string | null = null;
+  let rating: number | null = null;
+  const ratingHistory: CardRating[] = [];
 
   // info.txt
   try {
@@ -111,10 +114,30 @@ export async function readTicketFromFolder(
     console.warn('Erro lendo card.json em', (folderHandle as any).name, e);
   }
 
+  // avaliacao.txt (histórico; vale a última linha)
+  try {
+    const rh = await folderHandle.getFileHandle(CARD_RATING_FILE).catch(() => null);
+    if (rh) {
+      const f = await rh.getFile();
+      const lines = (await f.text()).split(/\r?\n/).filter(line => line.trim().length > 0);
+      for (const line of lines) {
+        const [date, value] = line.split('|');
+        const parsed = Number(value);
+        if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 5) {
+          ratingHistory.push({ date: date.trim(), rating: parsed });
+        }
+      }
+      rating = ratingHistory[ratingHistory.length - 1]?.rating ?? null;
+      updatedAt = Math.max(updatedAt, f.lastModified);
+    }
+  } catch (e) {
+    console.warn('Erro lendo avaliacao.txt em', (folderHandle as any).name, e);
+  }
+
   // anexos
   try {
     for await (const [name, h] of (folderHandle as any).entries()) {
-      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE || name === CARD_TASKS_FILE || name === CARD_META_FILE) continue;
+      if (name === 'info.txt' || name === 'comments.txt' || name === CARD_LEGENDS_FILE || name === CARD_TASKS_FILE || name === CARD_META_FILE || name === CARD_RATING_FILE) continue;
       if (h.kind === 'file') {
         try {
           const f = await (h as FileSystemFileHandle).getFile();
@@ -145,6 +168,8 @@ export async function readTicketFromFolder(
     archivedAt,
     archivedFromListId,
     archivedFromListName,
+    rating,
+    ratingHistory,
   } as TicketCard;
 }
 
@@ -184,6 +209,19 @@ export async function saveCardMeta(card: TicketCard, meta: Partial<TicketCard>):
   };
   await writable.write(JSON.stringify(payload, null, 2));
   await writable.close();
+}
+
+export async function addCardRating(card: TicketCard, rating: number): Promise<CardRating> {
+  const fh = await card.folderHandle.getFileHandle(CARD_RATING_FILE, { create: true });
+  const existing = await fh.getFile().then(f => f.text()).catch(() => '');
+  const base = existing && !existing.endsWith('\n') ? existing + '\n' : existing;
+  const entry: CardRating = { date: new Date().toISOString(), rating };
+  const content = `${base}${entry.date}|${entry.rating}\n`;
+
+  const w = await fh.createWritable();
+  await w.write(content);
+  await w.close();
+  return entry;
 }
 
 export async function addAttachment(card: TicketCard): Promise<void> {
