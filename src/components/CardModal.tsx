@@ -77,6 +77,7 @@ interface CardModalProps {
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
   showRating: boolean;
+  ratingStars: number;
   onRateCard: (card: TicketCard, rating: number) => Promise<void>;
 }
 
@@ -87,7 +88,7 @@ function humanSize(n?: number) {
   return `${x.toFixed(x < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
-export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard, showRating, onRateCard }: CardModalProps) {
+export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard, showRating, ratingStars, onRateCard }: CardModalProps) {
   const [text, setText] = useState(card?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -368,7 +369,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
               </button>
               {showRating && (
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                  <RatingStars rating={card.rating} size={20} onRate={rating => onRateCard(card, rating)} />
+                  <RatingStars rating={card.rating} stars={ratingStars} size={20} onRate={rating => onRateCard(card, rating)} />
                 </div>
               )}
             </div>
@@ -659,6 +660,7 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
         open={showRatingHistory}
         onClose={() => setShowRatingHistory(false)}
         history={card?.ratingHistory ?? []}
+        stars={ratingStars}
       />
     </Modal>
   );

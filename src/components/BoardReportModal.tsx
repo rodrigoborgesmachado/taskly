@@ -246,10 +246,11 @@ export default function BoardReportModal({ open, board, onClose }: BoardReportMo
     const ratingCards = cards.filter(card => !card.archived && !isArchivedStageKey(card.stage));
     const ratedValues = ratingCards.map(card => card.rating).filter((rating): rating is number => !!rating);
     const ratingAverage = ratedValues.length ? ratedValues.reduce((sum, rating) => sum + rating, 0) / ratedValues.length : null;
-    const ratingCounts: ListCount[] = [5, 4, 3, 2, 1].map(star => ({
+    const ratingStars = board.settings.ratingStars;
+    const ratingCounts: ListCount[] = Array.from({ length: ratingStars }, (_, index) => ratingStars - index).map(star => ({
       listId: `${star}`,
       listName: `${star} estrela(s)`,
-      count: ratedValues.filter(rating => rating === star).length,
+      count: ratedValues.filter(rating => Math.min(rating, ratingStars) === star).length,
     }));
     ratingCounts.push({ listId: 'none', listName: NO_RATING_LABEL, count: ratingCards.length - ratedValues.length });
 
@@ -387,7 +388,7 @@ export default function BoardReportModal({ open, board, onClose }: BoardReportMo
                     <span style={{ fontSize: 22, fontWeight: 700 }}>
                       {report.ratingAverage !== null ? report.ratingAverage.toFixed(1) : '-'}
                     </span>
-                    <RatingStars rating={report.ratingAverage !== null ? Math.round(report.ratingAverage) : null} size={18} />
+                    <RatingStars rating={report.ratingAverage !== null ? Math.round(report.ratingAverage) : null} stars={board.settings.ratingStars} size={18} />
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                     {report.ratedCount} cards avaliados

@@ -1,4 +1,5 @@
 import type { CardRating, TicketCard } from '../types/board';
+import { MAX_RATING_STARS } from './boardSettingsService';
 
 const CARD_LEGENDS_FILE = 'legenda.txt';
 const CARD_TASKS_FILE = 'tasks.json';
@@ -123,7 +124,7 @@ export async function readTicketFromFolder(
       for (const line of lines) {
         const [date, value] = line.split('|');
         const parsed = Number(value);
-        if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 5) {
+        if (Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_RATING_STARS) {
           ratingHistory.push({ date: date.trim(), rating: parsed });
         }
       }

@@ -12,6 +12,7 @@ export interface Legend {
 
 export interface BoardSettings {
   cardRating: boolean;
+  ratingStars: number;
 }
 
 export interface Stages {

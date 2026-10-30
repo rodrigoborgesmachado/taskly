@@ -17,6 +17,7 @@ interface ColumnProps {
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
   showRating: boolean;
+  ratingStars: number;
   onRateCard: (card: TicketCard, rating: number) => Promise<void>;
 }
 
@@ -30,7 +31,7 @@ interface ContextMenuState {
   error: string | null;
 }
 
-export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard, showRating, onRateCard }: ColumnProps) {
+export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard, showRating, ratingStars, onRateCard }: ColumnProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -261,7 +262,7 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
                   {!!c.updatedAt && `Atualizado: ${fmtDate(c.updatedAt)}`}
                 </div>
                 {showRating && (
-                  <RatingStars rating={c.rating} onRate={rating => onRateCard(c, rating)} />
+                  <RatingStars rating={c.rating} stars={ratingStars} onRate={rating => onRateCard(c, rating)} />
                 )}
               </div>
             )}

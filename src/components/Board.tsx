@@ -43,6 +43,7 @@ export default function Board({ data, onOpenCard, onDropCard, onNewCard, onUpdat
           onArchiveCard={onArchiveCard}
           onRestoreCard={onRestoreCard}
           showRating={data.settings.cardRating}
+          ratingStars={data.settings.ratingStars}
           onRateCard={onRateCard}
         />
       ))}

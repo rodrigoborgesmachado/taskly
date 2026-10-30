@@ -6,7 +6,7 @@ import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
 import { addCardRating, canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, saveCardMeta, verifyPermission } from '../services/fsWeb';
-import { saveBoardSettings } from '../services/boardSettingsService';
+import { DEFAULT_BOARD_SETTINGS, saveBoardSettings } from '../services/boardSettingsService';
 import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles, removeBoardHandle } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
@@ -443,6 +443,7 @@ function BoardPage() {
         onArchiveCard={handleArchiveCard}
         onRestoreCard={handleRestoreCard}
         showRating={board?.settings.cardRating ?? false}
+        ratingStars={board?.settings.ratingStars ?? DEFAULT_BOARD_SETTINGS.ratingStars}
         onRateCard={handleRateCard}
       />
 

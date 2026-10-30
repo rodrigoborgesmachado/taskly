@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
 import type { BoardSettings } from '../types/common';
-import { DEFAULT_BOARD_SETTINGS } from '../services/boardSettingsService';
+import { DEFAULT_BOARD_SETTINGS, MAX_RATING_STARS, MIN_RATING_STARS, normalizeRatingStars } from '../services/boardSettingsService';
 
 interface BoardSettingsModalProps {
   open: boolean;
@@ -24,7 +24,7 @@ export default function BoardSettingsModal({ open, settings, onClose, onSave }: 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSave(form);
+      await onSave({ ...form, ratingStars: normalizeRatingStars(form.ratingStars) });
       onClose();
     } finally {
       setSaving(false);
@@ -59,13 +59,42 @@ export default function BoardSettingsModal({ open, settings, onClose, onSave }: 
           <div style={{ display: 'grid', gap: 4 }}>
             <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>Avaliação de card</span>
             <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-              Exibe 5 estrelas em cada card para avaliá-lo.
+              Exibe estrelas em cada card para avaliá-lo.
             </span>
           </div>
           <input
             type="checkbox"
             checked={form.cardRating}
             onChange={e => setForm(prev => ({ ...prev, cardRating: e.target.checked }))}
+          />
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            border: '1px solid var(--color-border)',
+            borderRadius: 12,
+            padding: '12px 14px',
+            background: 'var(--color-surface)',
+          }}
+        >
+          <div style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>Quantidade de estrelas</span>
+            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+              Define de {MIN_RATING_STARS} a {MAX_RATING_STARS} estrelas para a avaliação de card.
+            </span>
+          </div>
+          <input
+            type="number"
+            min={MIN_RATING_STARS}
+            max={MAX_RATING_STARS}
+            value={form.ratingStars}
+            disabled={!form.cardRating}
+            onChange={e => setForm(prev => ({ ...prev, ratingStars: Number(e.target.value) }))}
+            style={{ width: 64 }}
           />
         </label>
 

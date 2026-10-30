@@ -1,16 +1,18 @@
-const RATING_STARS = [1, 2, 3, 4, 5];
+import { DEFAULT_BOARD_SETTINGS } from '../services/boardSettingsService';
+
 const RATING_COLOR = '#FACC15';
 
 interface RatingStarsProps {
   rating?: number | null;
+  stars?: number;
   size?: number;
   onRate?: (rating: number) => void;
 }
 
-export default function RatingStars({ rating, size = 16, onRate }: RatingStarsProps) {
+export default function RatingStars({ rating, stars = DEFAULT_BOARD_SETTINGS.ratingStars, size = 16, onRate }: RatingStarsProps) {
   return (
     <div style={{ display: 'flex', gap: 2, fontSize: size, lineHeight: 1, flexShrink: 0 }}>
-      {RATING_STARS.map(star => (
+      {Array.from({ length: stars }, (_, index) => index + 1).map(star => (
         <span
           key={star}
           role={onRate ? 'button' : undefined}

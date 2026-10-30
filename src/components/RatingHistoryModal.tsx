@@ -6,6 +6,7 @@ interface RatingHistoryModalProps {
   open: boolean;
   onClose: () => void;
   history: CardRating[];
+  stars: number;
 }
 
 function formatRatingDate(date: string) {
@@ -13,7 +14,7 @@ function formatRatingDate(date: string) {
   return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleString();
 }
 
-export default function RatingHistoryModal({ open, onClose, history }: RatingHistoryModalProps) {
+export default function RatingHistoryModal({ open, onClose, history, stars }: RatingHistoryModalProps) {
   const items = [...history].reverse();
 
   return (
@@ -45,7 +46,7 @@ export default function RatingHistoryModal({ open, onClose, history }: RatingHis
                   background: 'var(--color-surface)',
                 }}
               >
-                <RatingStars rating={item.rating} size={18} />
+                <RatingStars rating={item.rating} stars={stars} size={18} />
                 <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                   {formatRatingDate(item.date)}
                 </span>
