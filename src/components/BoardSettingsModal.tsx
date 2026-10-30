@@ -98,6 +98,31 @@ export default function BoardSettingsModal({ open, settings, onClose, onSave }: 
           />
         </label>
 
+        <label
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            border: '1px solid var(--color-border)',
+            borderRadius: 12,
+            padding: '12px 14px',
+            background: 'var(--color-surface)',
+          }}
+        >
+          <div style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>Confirmar ao arquivar card</span>
+            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+              Pede confirmação antes de arquivar um card.
+            </span>
+          </div>
+          <input
+            type="checkbox"
+            checked={form.confirmArchiveCard}
+            onChange={e => setForm(prev => ({ ...prev, confirmArchiveCard: e.target.checked }))}
+          />
+        </label>
+
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose}>Cancelar</button>
           <button onClick={handleSave} disabled={saving} style={{ padding: '6px 12px' }}>

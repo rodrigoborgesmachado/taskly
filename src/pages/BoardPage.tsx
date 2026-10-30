@@ -237,6 +237,7 @@ function BoardPage() {
   const handleArchiveCard = async (card: TicketCard) => {
     if (!root) return;
     if (isArchivedStageKey(card.stage)) return;
+    if (board?.settings.confirmArchiveCard && !window.confirm('Arquivar este card?')) return;
     await ensureArchivedFolder();
     const archivedAt = new Date().toISOString();
     await saveCardMeta(card, {

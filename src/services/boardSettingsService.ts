@@ -8,6 +8,7 @@ export const MAX_RATING_STARS = 10;
 export const DEFAULT_BOARD_SETTINGS: BoardSettings = {
   cardRating: false,
   ratingStars: 5,
+  confirmArchiveCard: false,
 };
 
 export function normalizeRatingStars(value: unknown): number {
@@ -26,6 +27,7 @@ export async function loadBoardSettings(root: FileSystemDirectoryHandle): Promis
     return {
       cardRating: !!parsed.cardRating,
       ratingStars: normalizeRatingStars(parsed.ratingStars),
+      confirmArchiveCard: !!parsed.confirmArchiveCard,
     };
   } catch (e) {
     console.warn('Erro lendo configuracoes.json', e);
