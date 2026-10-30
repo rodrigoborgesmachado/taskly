@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import Modal from './Modal';
+import RatingStars from './RatingStars';
 import type { DynamicBoardData } from '../services/boardService';
 import type { TicketCard } from '../types/board';
+import { isArchivedStageKey } from '../utils/archive';
 
 interface BoardReportModalProps {
   open: boolean;
@@ -15,6 +17,7 @@ type ActivityPoint = { date: string; count: number };
 
 const NO_LEGEND_LABEL = 'Sem legenda';
 const NO_LEGEND_COLOR = '#64748b';
+const NO_RATING_LABEL = 'Sem avaliação';
 
 function toDateKey(date: Date) {
   const y = date.getFullYear();
@@ -240,6 +243,16 @@ export default function BoardReportModal({ open, board, onClose }: BoardReportMo
 
     const activityByDay = buildActivity(cards, rangeDays);
 
+    const ratingCards = cards.filter(card => !card.archived && !isArchivedStageKey(card.stage));
+    const ratedValues = ratingCards.map(card => card.rating).filter((rating): rating is number => !!rating);
+    const ratingAverage = ratedValues.length ? ratedValues.reduce((sum, rating) => sum + rating, 0) / ratedValues.length : null;
+    const ratingCounts: ListCount[] = [5, 4, 3, 2, 1].map(star => ({
+      listId: `${star}`,
+      listName: `${star} estrela(s)`,
+      count: ratedValues.filter(rating => rating === star).length,
+    }));
+    ratingCounts.push({ listId: 'none', listName: NO_RATING_LABEL, count: ratingCards.length - ratedValues.length });
+
     return {
       cards,
       totalCards,
@@ -250,6 +263,9 @@ export default function BoardReportModal({ open, board, onClose }: BoardReportMo
       activityByDay,
       lastActivity,
       active7d,
+      ratingAverage,
+      ratedCount: ratedValues.length,
+      ratingCounts,
     };
   }, [board, rangeDays]);
 
@@ -361,6 +377,25 @@ export default function BoardReportModal({ open, board, onClose }: BoardReportMo
                 </div>
               </div>
             </section>
+
+            {board?.settings.cardRating && (
+              <section style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: 14, background: 'var(--color-surface)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+                <div style={{ display: 'grid', gap: 8, alignContent: 'start' }}>
+                  <h3 style={{ margin: 0, fontSize: 15 }}>Avaliações</h3>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Média das avaliações</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 22, fontWeight: 700 }}>
+                      {report.ratingAverage !== null ? report.ratingAverage.toFixed(1) : '-'}
+                    </span>
+                    <RatingStars rating={report.ratingAverage !== null ? Math.round(report.ratingAverage) : null} size={18} />
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                    {report.ratedCount} cards avaliados
+                  </div>
+                </div>
+                <BarChart data={report.ratingCounts} />
+              </section>
+            )}
 
             <section style={{ border: '1px solid var(--color-border)', borderRadius: 12, padding: 14, background: 'var(--color-surface)', display: 'grid', gap: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
