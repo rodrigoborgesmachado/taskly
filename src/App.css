@@ -281,23 +281,24 @@
 }
 
 .board-loading {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: var(--color-overlay);
-  color: var(--color-text-primary);
-  border-radius: 12px;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  color: #f8fafc;
   z-index: 9999;
 }
 
 .board-loading__spinner {
-  width: 18px;
-  height: 18px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 2px solid var(--color-board-border);
+  border: 3px solid rgba(248, 250, 252, 0.3);
   border-top-color: var(--color-accent);
   animation: board-spin 0.9s linear infinite;
 }
