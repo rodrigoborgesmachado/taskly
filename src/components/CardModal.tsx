@@ -363,9 +363,11 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
               >
                 {updatingLegends ? 'Atualizando…' : 'Legendas'}
               </button>
-              <button onClick={() => setShowRatingHistory(true)} style={{ padding: '6px 12px' }}>
-                Avaliações
-              </button>
+              {showRating && (
+                <button onClick={() => setShowRatingHistory(true)} style={{ padding: '6px 12px' }}>
+                  Avaliações
+                </button>
+              )}
               {showRating && (
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
                   <RatingStars rating={card.rating} stars={ratingStars} size={20} onRate={rating => onRateCard(card, rating)} />
