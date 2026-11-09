@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TicketCard } from '../types/board';
 import type { Legend } from '../types/common';
 import LegendTag from './LegendTag';
@@ -33,6 +33,7 @@ interface ContextMenuState {
 
 export default function Column({ stageKey, title, items, legends, onOpen, onDropCard, onNewCard, onLegendsChange, onArchiveCard, onRestoreCard, showRating, ratingStars, onRateCard }: ColumnProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -104,6 +105,18 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
+  }, [contextMenu]);
+
+  useLayoutEffect(() => {
+    const menu = contextMenuRef.current;
+    if (!menu) return;
+    const rect = menu.getBoundingClientRect();
+    const { clientWidth, clientHeight } = document.documentElement;
+    const maxX = Math.max(8, clientWidth - rect.width - 8);
+    const maxY = Math.max(8, clientHeight - rect.height - 8);
+    if (rect.left > maxX || rect.top > maxY) {
+      setContextMenu(prev => (prev ? { ...prev, x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : prev));
+    }
   }, [contextMenu]);
 
   const toggleLegendFromMenu = async (legendName: string) => {
@@ -292,10 +305,15 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
           onClick={closeContextMenu}
         >
           <div
+            ref={contextMenuRef}
             style={{
               position: 'absolute',
               top: contextMenu.y,
               left: contextMenu.x,
+              maxHeight: 'calc(100vh - 16px)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
               background: 'var(--color-surface-elevated)',
               border: '1px solid var(--color-border-strong)',
               borderRadius: 12,
@@ -320,7 +338,7 @@ export default function Column({ stageKey, title, items, legends, onOpen, onDrop
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>
               Clique para alternar as legendas do card "{contextMenu.card.title}".
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div style={{ display: 'grid', gap: 6, maxHeight: '50vh', minHeight: 0, overflowY: 'auto' }}>
               {legends.length === 0 ? (
                 <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
                   Nenhuma legenda disponível.
