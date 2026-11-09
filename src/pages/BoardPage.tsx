@@ -441,6 +441,7 @@ function BoardPage() {
         onClose={() => setActiveCard(null)}
         onSaved={() => doLoad()}
         availableLegends={board?.legends ?? []}
+        onUpdateLegends={handleUpdateCardLegends}
         onArchiveCard={handleArchiveCard}
         onRestoreCard={handleRestoreCard}
         showRating={board?.settings.cardRating ?? false}

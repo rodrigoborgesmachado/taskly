@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, type ReactNode, type SVGProps } from 'react';
 import Modal from './Modal';
 import type { TicketCard, TaskItem } from '../types/board';
-import { addAttachment, openAttachment, saveDescription, addComment, saveCardLegends, updateComment, saveCardTasks } from '../services/fsWeb'; // <- add addComment
+import { addAttachment, openAttachment, saveDescription, addComment, updateComment, saveCardTasks } from '../services/fsWeb'; // <- add addComment
 import { toast } from '../utils/toast';
 import type { Legend, StageKey } from '../types/common';
 import LegendTag from './LegendTag';
@@ -74,6 +74,7 @@ interface CardModalProps {
   onSaved: () => void;      // recarrega board/coluna
   onMove?: (target: StageKey) => void;
   availableLegends: Legend[];
+  onUpdateLegends: (card: TicketCard, legendNames: string[]) => Promise<void>;
   onArchiveCard: (card: TicketCard) => Promise<void>;
   onRestoreCard: (card: TicketCard) => Promise<void>;
   showRating: boolean;
@@ -88,7 +89,7 @@ function humanSize(n?: number) {
   return `${x.toFixed(x < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
-export default function CardModal({ open, card, onClose, onSaved, availableLegends, onArchiveCard, onRestoreCard, showRating, ratingStars, onRateCard }: CardModalProps) {
+export default function CardModal({ open, card, onClose, onSaved, availableLegends, onUpdateLegends, onArchiveCard, onRestoreCard, showRating, ratingStars, onRateCard }: CardModalProps) {
   const [text, setText] = useState(card?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -195,12 +196,10 @@ export default function CardModal({ open, card, onClose, onSaved, availableLegen
     setUpdatingLegends(true);
 
     try {
-      await saveCardLegends(card, toPersist);
+      await onUpdateLegends(card, toPersist);
       setSelectedLegends(toPersist);
-      onSaved();
     } catch (e) {
       console.error(e);
-      toast.error('Erro ao atualizar legendas');
       setSelectedLegends(previous);
     } finally {
       setUpdatingLegends(false);
