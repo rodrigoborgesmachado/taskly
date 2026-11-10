@@ -7,7 +7,7 @@ import type { TicketCard } from '../types/board';
 import { loadBoardDynamic } from '../services/boardService';
 import { addCardRating, canUseFS, createCardInStage, moveCardToStageName, pickRootDir, saveCardLegends, saveCardMeta, verifyPermission } from '../services/fsWeb';
 import { DEFAULT_BOARD_SETTINGS, saveBoardSettings } from '../services/boardSettingsService';
-import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles, removeBoardHandle } from '../services/handleStore';
+import { saveRootHandle, loadRootHandle, clearRootHandle, loadBoardHandles, removeBoardHandle, saveBoardHandles } from '../services/handleStore';
 import { Toaster, toast } from '../utils/toast';
 import Board from '../components/Board';
 import CardModal from '../components/CardModal';
@@ -36,6 +36,8 @@ function BoardPage() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showArchivedModal, setShowArchivedModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [dragBoardIndex, setDragBoardIndex] = useState<number | null>(null);
+  const [dragOverBoardIndex, setDragOverBoardIndex] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const hasAttention = useMemo(() => {
@@ -115,6 +117,15 @@ function BoardPage() {
     const boards = await loadBoardHandles().catch(() => []);
     setSavedBoards(boards);
     setRoot(h);
+  }
+
+  async function moveBoard(from: number, to: number) {
+    if (from === to) return;
+    const next = [...savedBoards];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setSavedBoards(next);
+    await saveBoardHandles(next).catch(() => {});
   }
 
   const handleDropCard = async (targetStage: string, payload: { stage: string; name: string }) => {
@@ -355,8 +366,28 @@ function BoardPage() {
               <button
                 type="button"
                 key={`${(h as any).name}-${idx}`}
-                className={`board-tab${isActive ? ' is-active' : ''}`}
+                className={`board-tab${isActive ? ' is-active' : ''}${dragBoardIndex === idx ? ' is-dragging' : ''}${dragBoardIndex !== null && dragBoardIndex !== idx && dragOverBoardIndex === idx ? ' is-drag-over' : ''}`}
                 onClick={() => selectBoard(h)}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', (h as any).name);
+                  e.dataTransfer.effectAllowed = 'move';
+                  setDragBoardIndex(idx);
+                }}
+                onDragOver={(e) => {
+                  if (dragBoardIndex === null) return;
+                  e.preventDefault();
+                  setDragOverBoardIndex(idx);
+                }}
+                onDrop={(e) => {
+                  if (dragBoardIndex === null) return;
+                  e.preventDefault();
+                  moveBoard(dragBoardIndex, idx);
+                }}
+                onDragEnd={() => {
+                  setDragBoardIndex(null);
+                  setDragOverBoardIndex(null);
+                }}
                 role="tab"
                 aria-selected={!!isActive}
               >

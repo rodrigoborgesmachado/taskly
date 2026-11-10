@@ -48,6 +48,16 @@ export async function loadBoardHandles(): Promise<FileSystemDirectoryHandle[]> {
   });
 }
 
+export async function saveBoardHandles(handles: FileSystemDirectoryHandle[]) {
+  const db = await openDB();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(handles, LIST_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function loadRootHandle(): Promise<FileSystemDirectoryHandle | null> {
   const db = await openDB();
   return new Promise((resolve, reject) => {

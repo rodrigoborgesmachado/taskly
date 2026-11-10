@@ -216,6 +216,15 @@
   font-weight: 600;
 }
 
+.board-tab.is-dragging {
+  opacity: 0.5;
+}
+
+.board-tab.is-drag-over {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
 .board-tab--placeholder {
   background: var(--color-board-bg);
   border-color: var(--color-board-border);
